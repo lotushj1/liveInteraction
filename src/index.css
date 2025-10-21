@@ -1,0 +1,342 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    /* 背景 - 深灰黑 */
+    --background: 158 8% 8%;
+    --foreground: 0 0% 95%;
+
+    /* 卡片 - 毛玻璃效果 */
+    --card: 158 10% 12%;
+    --card-foreground: 0 0% 95%;
+
+    --popover: 158 10% 12%;
+    --popover-foreground: 0 0% 95%;
+
+    /* 主色 - 墨綠 */
+    --primary: 158 64% 25%;
+    --primary-foreground: 0 0% 100%;
+    --primary-glow: 158 64% 35%;
+
+    /* 次要色 - 深灰 */
+    --secondary: 158 8% 18%;
+    --secondary-foreground: 158 44% 75%;
+
+    /* 靜音色 */
+    --muted: 158 8% 15%;
+    --muted-foreground: 158 8% 60%;
+
+    /* 輔助色 - 淺墨綠 */
+    --accent: 158 44% 45%;
+    --accent-foreground: 0 0% 100%;
+    --accent-light: 158 34% 55%;
+
+    /* 成功色 */
+    --success: 142 76% 36%;
+    --success-foreground: 0 0% 100%;
+
+    /* 錯誤色 */
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* 邊框與輸入 */
+    --border: 158 20% 20%;
+    --input: 158 20% 18%;
+    --ring: 158 64% 35%;
+
+    --radius: 0.75rem;
+
+    /* 毛玻璃漸變 */
+    --gradient-glass-primary: linear-gradient(135deg, 
+      hsla(158, 64%, 25%, 0.8), 
+      hsla(158, 44%, 35%, 0.6));
+    --gradient-glass-accent: linear-gradient(135deg, 
+      hsla(158, 44%, 45%, 0.8), 
+      hsla(158, 34%, 55%, 0.6));
+    --gradient-primary: linear-gradient(135deg, hsl(158 64% 25%), hsl(158 44% 35%));
+    --gradient-accent: linear-gradient(135deg, hsl(158 44% 45%), hsl(158 34% 55%));
+    --gradient-hero: linear-gradient(180deg, hsl(158 8% 8%), hsl(158 10% 12%));
+    
+    /* 毛玻璃陰影 */
+    --shadow-glass: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    --shadow-glass-lg: 0 12px 48px 0 rgba(0, 0, 0, 0.5);
+    --shadow-primary: 0 10px 40px -10px hsl(158 64% 25% / 0.3);
+    --shadow-accent: 0 10px 40px -10px hsl(158 44% 45% / 0.3);
+    --shadow-card: 0 4px 20px -2px hsl(0 0% 0% / 0.2);
+    
+    /* Transitions */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .dark {
+    /* 背景 - 更深黑 */
+    --background: 158 10% 4%;
+    --foreground: 0 0% 98%;
+
+    /* 卡片 */
+    --card: 158 12% 8%;
+    --card-foreground: 0 0% 98%;
+
+    --popover: 158 12% 8%;
+    --popover-foreground: 0 0% 98%;
+
+    /* 主色 - 稍亮墨綠 */
+    --primary: 158 64% 30%;
+    --primary-foreground: 0 0% 100%;
+    --primary-glow: 158 64% 40%;
+
+    /* 次要色 */
+    --secondary: 158 10% 12%;
+    --secondary-foreground: 158 44% 80%;
+
+    /* 靜音色 */
+    --muted: 158 10% 10%;
+    --muted-foreground: 158 8% 65%;
+
+    /* 輔助色 */
+    --accent: 158 44% 50%;
+    --accent-foreground: 0 0% 100%;
+    --accent-light: 158 34% 60%;
+
+    /* 成功色 */
+    --success: 142 76% 40%;
+    --success-foreground: 0 0% 100%;
+
+    /* 錯誤色 */
+    --destructive: 0 84% 65%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* 邊框與輸入 */
+    --border: 158 20% 15%;
+    --input: 158 20% 12%;
+    --ring: 158 64% 40%;
+
+    --gradient-glass-primary: linear-gradient(135deg, 
+      hsla(158, 64%, 30%, 0.8), 
+      hsla(158, 44%, 40%, 0.6));
+    --gradient-glass-accent: linear-gradient(135deg, 
+      hsla(158, 44%, 50%, 0.8), 
+      hsla(158, 34%, 60%, 0.6));
+    --gradient-primary: linear-gradient(135deg, hsl(158 64% 30%), hsl(158 44% 40%));
+    --gradient-accent: linear-gradient(135deg, hsl(158 44% 50%), hsl(158 34% 60%));
+    --gradient-hero: linear-gradient(180deg, hsl(158 10% 4%), hsl(158 12% 8%));
+    
+    --shadow-glass: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+    --shadow-glass-lg: 0 12px 48px 0 rgba(0, 0, 0, 0.6);
+    --shadow-primary: 0 10px 40px -10px hsl(158 64% 30% / 0.5);
+    --shadow-accent: 0 10px 40px -10px hsl(158 44% 50% / 0.5);
+    --shadow-card: 0 4px 20px -2px hsl(0 0% 0% / 0.4);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+    background-image: 
+      radial-gradient(
+        circle at 20% 50%, 
+        hsla(158, 64%, 15%, 0.15) 0%, 
+        transparent 50%
+      ),
+      radial-gradient(
+        circle at 80% 80%, 
+        hsla(158, 44%, 25%, 0.1) 0%, 
+        transparent 50%
+      );
+    background-attachment: fixed;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-bold tracking-tight;
+  }
+
+  /* 捲軸樣式 */
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-muted;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-primary rounded;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-primary-glow;
+  }
+}
+
+@layer utilities {
+  /* 毛玻璃基礎效果 */
+  .glass {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(16px) saturate(180%);
+    -webkit-backdrop-filter: blur(16px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  .glass-card {
+    background: rgba(20, 30, 40, 0.7);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(158, 255, 200, 0.15);
+    box-shadow: var(--shadow-glass);
+  }
+  
+  .glass-strong {
+    background: rgba(20, 30, 40, 0.85);
+    backdrop-filter: blur(24px) saturate(200%);
+    -webkit-backdrop-filter: blur(24px) saturate(200%);
+    border: 1px solid rgba(158, 255, 200, 0.2);
+  }
+  
+  .glass-header {
+    background: rgba(20, 30, 40, 0.6);
+    backdrop-filter: blur(12px) saturate(180%);
+    -webkit-backdrop-filter: blur(12px) saturate(180%);
+    border-bottom: 1px solid rgba(158, 255, 200, 0.1);
+  }
+  
+  /* 毛玻璃漸變 */
+  .gradient-glass-primary {
+    background: linear-gradient(135deg, 
+      hsla(158, 64%, 25%, 0.8), 
+      hsla(158, 44%, 35%, 0.6));
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+  }
+  
+  .gradient-glass-accent {
+    background: linear-gradient(135deg, 
+      hsla(158, 44%, 45%, 0.8), 
+      hsla(158, 34%, 55%, 0.6));
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+  }
+  
+  /* 原有漸變 */
+  .gradient-primary {
+    background: var(--gradient-primary);
+  }
+  
+  .gradient-accent {
+    background: var(--gradient-accent);
+  }
+  
+  .gradient-hero {
+    background: var(--gradient-hero);
+  }
+  
+  /* 邊框發光效果 */
+  .glow-border {
+    box-shadow: 
+      0 0 20px rgba(158, 255, 200, 0.3),
+      inset 0 0 20px rgba(158, 255, 200, 0.1);
+  }
+  
+  .glow-border-strong {
+    box-shadow: 
+      0 0 30px rgba(158, 255, 200, 0.5),
+      inset 0 0 30px rgba(158, 255, 200, 0.15);
+  }
+  
+  /* 陰影效果 */
+  .shadow-primary {
+    box-shadow: var(--shadow-primary);
+  }
+  
+  .shadow-accent {
+    box-shadow: var(--shadow-accent);
+  }
+  
+  .shadow-card {
+    box-shadow: var(--shadow-card);
+  }
+  
+  .shadow-glass {
+    box-shadow: var(--shadow-glass);
+  }
+  
+  .shadow-glass-lg {
+    box-shadow: var(--shadow-glass-lg);
+  }
+  
+  /* 動畫效果 */
+  .animate-pulse-soft {
+    animation: pulse-soft 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+  
+  @keyframes pulse-soft {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.8;
+    }
+  }
+  
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+  
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-20px);
+    }
+  }
+  
+  .animate-glass-pulse {
+    animation: glass-pulse 3s ease-in-out infinite;
+  }
+  
+  @keyframes glass-pulse {
+    0%, 100% {
+      box-shadow: 0 0 20px rgba(158, 255, 200, 0.2);
+    }
+    50% {
+      box-shadow: 0 0 40px rgba(158, 255, 200, 0.4);
+    }
+  }
+  
+  .animate-glass-shimmer {
+    animation: glass-shimmer 3s ease-in-out infinite;
+  }
+  
+  @keyframes glass-shimmer {
+    0%, 100% { 
+      box-shadow: 0 0 20px rgba(158, 255, 200, 0.2);
+    }
+    50% { 
+      box-shadow: 0 0 40px rgba(158, 255, 200, 0.4);
+    }
+  }
+  
+  /* 移動裝置優化 */
+  @media (max-width: 768px) {
+    .glass-card {
+      backdrop-filter: blur(12px) saturate(150%);
+      -webkit-backdrop-filter: blur(12px) saturate(150%);
+    }
+    
+    .glass-strong {
+      backdrop-filter: blur(16px) saturate(180%);
+      -webkit-backdrop-filter: blur(16px) saturate(180%);
+    }
+  }
+}
