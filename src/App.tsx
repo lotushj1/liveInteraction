@@ -15,8 +15,24 @@ import Join from "./pages/Join";
 import Lobby from "./pages/participant/Lobby";
 import Display from "./pages/Display";
 import NotFound from "./pages/NotFound";
+import { logger } from "@/lib/logger";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5, // 5 分鐘內的資料視為新鮮
+      gcTime: 1000 * 60 * 10, // 快取保留 10 分鐘 (原 cacheTime)
+      retry: 1, // 失敗後重試 1 次
+      refetchOnWindowFocus: false, // 視窗聚焦時不自動重新請求
+    },
+    mutations: {
+      retry: 0, // mutation 失敗不重試
+      onError: (error) => {
+        logger.error('Mutation error:', error);
+      },
+    },
+  },
+});
 
 const App = () => (
   <QueryClientProvider client={queryClient}>

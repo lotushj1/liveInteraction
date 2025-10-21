@@ -2,6 +2,7 @@ import { useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { RealtimeChannel } from '@supabase/supabase-js';
 import { RealtimeEvent, RealtimeEventType } from '@/lib/realtimeEvents';
+import { logger } from '@/lib/logger';
 
 interface UseRealtimeBroadcastOptions {
   channelName: string;
@@ -15,11 +16,17 @@ export const useRealtimeBroadcast = ({
   enabled = true,
 }: UseRealtimeBroadcastOptions) => {
   const channelRef = useRef<RealtimeChannel | null>(null);
+  const onEventRef = useRef(onEvent);
+
+  // 保持 onEventRef 最新
+  useEffect(() => {
+    onEventRef.current = onEvent;
+  }, [onEvent]);
 
   useEffect(() => {
     if (!enabled) return;
 
-    console.log(`[Broadcast] 訂閱頻道: ${channelName}`);
+    logger.log(`[Broadcast] 訂閱頻道: ${channelName}`);
 
     const channel = supabase.channel(channelName, {
       config: {
@@ -30,31 +37,31 @@ export const useRealtimeBroadcast = ({
     channel
       .on('broadcast', { event: '*' }, (payload) => {
         const event = payload.payload as RealtimeEvent;
-        console.log(`[Broadcast] 收到事件: ${event.type}`, event);
-        onEvent?.(event);
+        logger.log(`[Broadcast] 收到事件: ${event.type}`, event);
+        onEventRef.current?.(event);
       })
       .subscribe((status) => {
-        console.log(`[Broadcast] 訂閱狀態: ${status}`);
+        logger.log(`[Broadcast] 訂閱狀態: ${status}`);
       });
 
     channelRef.current = channel;
 
     return () => {
-      console.log(`[Broadcast] 取消訂閱: ${channelName}`);
+      logger.log(`[Broadcast] 取消訂閱: ${channelName}`);
       supabase.removeChannel(channel);
     };
-  }, [channelName, enabled, onEvent]);
+  }, [channelName, enabled]);
 
   // 發送廣播事件
   const broadcast = useCallback(
     async (event: RealtimeEvent) => {
       if (!channelRef.current) {
-        console.error('[Broadcast] 頻道未初始化');
+        logger.error('[Broadcast] 頻道未初始化');
         return;
       }
 
-      console.log(`[Broadcast] 發送事件: ${event.type}`, event);
-      
+      logger.log(`[Broadcast] 發送事件: ${event.type}`, event);
+
       await channelRef.current.send({
         type: 'broadcast',
         event: event.type,

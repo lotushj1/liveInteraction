@@ -235,14 +235,26 @@ export function useReorderQuestions() {
           .eq('id', q.id)
       );
 
-      await Promise.all(updates);
+      const results = await Promise.all(updates);
+
+      // 檢查是否有錯誤
+      const errors = results.filter(r => r.error);
+      if (errors.length > 0) {
+        const errorMessages = errors.map(e => e.error?.message).filter(Boolean).join(', ');
+        throw new Error(`重新排序失敗: ${errorMessages}`);
+      }
+
       return quizId;
     },
     onSuccess: (quizId) => {
       queryClient.invalidateQueries({ queryKey: ['quiz-questions', quizId] });
     },
-    onError: () => {
-      toast({ title: '重新排序失敗', variant: 'destructive' });
+    onError: (error: Error) => {
+      toast({
+        title: '重新排序失敗',
+        description: error.message,
+        variant: 'destructive'
+      });
     },
   });
 }

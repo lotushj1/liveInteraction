@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -9,12 +9,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Zap } from 'lucide-react';
 import { z } from 'zod';
+import { VALIDATION } from '@/lib/constants';
+
 const loginSchema = z.object({
-  email: z.string().email('請輸入有效的電子郵件').max(255),
-  password: z.string().min(6, '密碼至少需要 6 個字元')
+  email: z.string().email('請輸入有效的電子郵件').max(VALIDATION.EMAIL_MAX_LENGTH),
+  password: z.string().min(VALIDATION.PASSWORD_MIN_LENGTH, '密碼至少需要 6 個字元')
 });
 const signupSchema = loginSchema.extend({
-  displayName: z.string().min(1, '請輸入您的名稱').max(100),
+  displayName: z.string().min(1, '請輸入您的名稱').max(VALIDATION.DISPLAY_NAME_MAX_LENGTH),
   confirmPassword: z.string()
 }).refine(data => data.password === data.confirmPassword, {
   message: '密碼不一致',
@@ -44,10 +46,14 @@ export default function Auth() {
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   // 如果已登入，重導向到儀表板
+  useEffect(() => {
+    if (user) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [user, navigate]);
+
+  // 在重導向時顯示載入畫面
   if (user) {
-    navigate('/dashboard', {
-      replace: true
-    });
     return null;
   }
   const handleLogin = async (e: React.FormEvent) => {
