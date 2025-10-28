@@ -6,12 +6,27 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useParticipant } from '@/hooks/useParticipant';
 import { ArrowLeft, Users } from 'lucide-react';
+import { z } from 'zod';
+import { VALIDATION } from '@/lib/constants';
+
+const joinSchema = z.object({
+  joinCode: z
+    .string()
+    .length(VALIDATION.JOIN_CODE_LENGTH, '代碼必須是 6 位數字')
+    .regex(/^\d{6}$/, '代碼必須是 6 位數字'),
+  nickname: z
+    .string()
+    .trim()
+    .min(VALIDATION.NICKNAME_MIN_LENGTH, `暱稱最少 ${VALIDATION.NICKNAME_MIN_LENGTH} 個字`)
+    .max(VALIDATION.NICKNAME_MAX_LENGTH, `暱稱最多 ${VALIDATION.NICKNAME_MAX_LENGTH} 個字`),
+});
 
 const Join = () => {
   const [searchParams] = useSearchParams();
   const codeFromUrl = searchParams.get('code');
   const [joinCode, setJoinCode] = useState('');
   const [nickname, setNickname] = useState('');
+  const [errors, setErrors] = useState<{ joinCode?: string; nickname?: string }>({});
   const { joinEvent, isJoining } = useParticipant();
   const nicknameInputRef = useRef<HTMLInputElement>(null);
 
@@ -33,12 +48,26 @@ const Join = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (joinCode.length === 6 && nickname.trim()) {
-      joinEvent({ joinCode, nickname: nickname.trim() });
+    setErrors({});
+
+    try {
+      const validated = joinSchema.parse({ joinCode, nickname });
+      joinEvent({ joinCode: validated.joinCode, nickname: validated.nickname });
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        const fieldErrors: { joinCode?: string; nickname?: string } = {};
+        err.errors.forEach(error => {
+          if (error.path[0]) {
+            fieldErrors[error.path[0] as 'joinCode' | 'nickname'] = error.message;
+          }
+        });
+        setErrors(fieldErrors);
+      }
     }
   };
 
-  const isValid = joinCode.length === 6 && nickname.trim().length >= 2;
+  const isValid = joinCode.length === VALIDATION.JOIN_CODE_LENGTH &&
+                  nickname.trim().length >= VALIDATION.NICKNAME_MIN_LENGTH;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 flex flex-col">
@@ -78,15 +107,19 @@ const Join = () => {
                   value={joinCode}
                   onChange={handleJoinCodeChange}
                   className="text-center text-2xl font-bold tracking-widest h-14"
-                  maxLength={6}
+                  maxLength={VALIDATION.JOIN_CODE_LENGTH}
                   required
                 />
-                <p className="text-sm text-muted-foreground text-center">
-                  {codeFromUrl && joinCode === codeFromUrl 
-                    ? '✓ 活動代碼已自動帶入' 
-                    : `${joinCode.length}/6 位數字`
-                  }
-                </p>
+                {errors.joinCode ? (
+                  <p className="text-sm text-destructive text-center">{errors.joinCode}</p>
+                ) : (
+                  <p className="text-sm text-muted-foreground text-center">
+                    {codeFromUrl && joinCode === codeFromUrl
+                      ? '✓ 活動代碼已自動帶入'
+                      : `${joinCode.length}/${VALIDATION.JOIN_CODE_LENGTH} 位數字`
+                    }
+                  </p>
+                )}
               </div>
 
               {/* Nickname Input */}
@@ -100,12 +133,16 @@ const Join = () => {
                   value={nickname}
                   onChange={(e) => setNickname(e.target.value)}
                   className="text-lg h-12"
-                  maxLength={20}
+                  maxLength={VALIDATION.NICKNAME_MAX_LENGTH}
                   required
                 />
-                <p className="text-sm text-muted-foreground">
-                  最少 2 個字，最多 20 個字
-                </p>
+                {errors.nickname ? (
+                  <p className="text-sm text-destructive">{errors.nickname}</p>
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    最少 {VALIDATION.NICKNAME_MIN_LENGTH} 個字，最多 {VALIDATION.NICKNAME_MAX_LENGTH} 個字
+                  </p>
+                )}
               </div>
 
               {/* Submit Button */}

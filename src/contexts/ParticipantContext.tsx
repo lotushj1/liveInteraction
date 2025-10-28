@@ -1,5 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { logger } from '@/lib/logger';
+import { STORAGE_KEYS } from '@/lib/constants';
 
 export interface EventParticipant {
   id: string;
@@ -43,18 +45,26 @@ export const ParticipantProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     // 從 localStorage 恢復狀態
-    const savedEventId = localStorage.getItem('participant_event_id');
-    const savedParticipantId = localStorage.getItem('participant_id');
+    const savedEventId = localStorage.getItem(STORAGE_KEYS.PARTICIPANT_EVENT_ID);
+    const savedParticipantId = localStorage.getItem(STORAGE_KEYS.PARTICIPANT_ID);
 
     if (savedEventId && savedParticipantId) {
       Promise.all([
         supabase.from('events').select('*').eq('id', savedEventId).single(),
         supabase.from('event_participants').select('*').eq('id', savedParticipantId).single()
-      ]).then(([eventRes, participantRes]) => {
-        if (eventRes.data) setEvent(eventRes.data as Event);
-        if (participantRes.data) setParticipant(participantRes.data as EventParticipant);
-        setIsLoading(false);
-      });
+      ])
+        .then(([eventRes, participantRes]) => {
+          if (eventRes.data) setEvent(eventRes.data as Event);
+          if (participantRes.data) setParticipant(participantRes.data as EventParticipant);
+          setIsLoading(false);
+        })
+        .catch(error => {
+          logger.error('Failed to restore participant state:', error);
+          // 清除無效的 localStorage
+          localStorage.removeItem(STORAGE_KEYS.PARTICIPANT_EVENT_ID);
+          localStorage.removeItem(STORAGE_KEYS.PARTICIPANT_ID);
+          setIsLoading(false);
+        });
     } else {
       setIsLoading(false);
     }

@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { RealtimeChannel } from '@supabase/supabase-js';
+import { logger } from '@/lib/logger';
 
 export interface ParticipantPresence {
   participantId: string;
@@ -30,7 +31,7 @@ export const useParticipantPresence = ({
   useEffect(() => {
     if (!enabled || !eventId) return;
 
-    console.log(`[Presence] 初始化頻道: event-${eventId}`);
+    logger.log(`[Presence] 初始化頻道: event-${eventId}`);
 
     const presenceChannel = supabase.channel(`event-presence-${eventId}`, {
       config: {
@@ -43,8 +44,8 @@ export const useParticipantPresence = ({
     presenceChannel
       .on('presence', { event: 'sync' }, () => {
         const state = presenceChannel.presenceState();
-        console.log('[Presence] 同步狀態:', state);
-        
+        logger.log('[Presence] 同步狀態:', state);
+
         // 轉換 presence state 為我們的格式
         const presenceMap: Record<string, ParticipantPresence> = {};
         Object.entries(state).forEach(([key, presences]) => {
@@ -57,19 +58,19 @@ export const useParticipantPresence = ({
             isOnline: true,
           };
         });
-        
+
         setPresenceState(presenceMap);
         setOnlineCount(Object.keys(presenceMap).length);
       })
       .on('presence', { event: 'join' }, ({ key, newPresences }) => {
-        console.log('[Presence] 參與者加入:', key, newPresences);
+        logger.log('[Presence] 參與者加入:', key, newPresences);
       })
       .on('presence', { event: 'leave' }, ({ key, leftPresences }) => {
-        console.log('[Presence] 參與者離開:', key, leftPresences);
+        logger.log('[Presence] 參與者離開:', key, leftPresences);
       })
       .subscribe(async (status) => {
-        console.log('[Presence] 訂閱狀態:', status);
-        
+        logger.log('[Presence] 訂閱狀態:', status);
+
         if (status === 'SUBSCRIBED' && participantId) {
           // 發送自己的 presence 狀態
           const myPresence = {
@@ -78,16 +79,16 @@ export const useParticipantPresence = ({
             currentPage: 'lobby',
             lastActiveAt: Date.now(),
           };
-          
+
           await presenceChannel.track(myPresence);
-          console.log('[Presence] 追蹤自己的狀態:', myPresence);
+          logger.log('[Presence] 追蹤自己的狀態:', myPresence);
         }
       });
 
     setChannel(presenceChannel);
 
     return () => {
-      console.log('[Presence] 清理頻道');
+      logger.log('[Presence] 清理頻道');
       supabase.removeChannel(presenceChannel);
     };
   }, [eventId, participantId, nickname, enabled]);
@@ -105,7 +106,7 @@ export const useParticipantPresence = ({
       };
 
       await channel.track(newPresence);
-      console.log('[Presence] 更新狀態:', newPresence);
+      logger.log('[Presence] 更新狀態:', newPresence);
     },
     [channel, participantId, presenceState]
   );

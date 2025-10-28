@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { logger } from '@/lib/logger';
 
 interface AuthContextType {
   user: User | null;
@@ -28,16 +29,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
-        
+
         // 檢查角色
         if (session?.user) {
-          setTimeout(() => {
-            checkUserRole(session.user.id);
-          }, 0);
+          checkUserRole(session.user.id).catch(err => {
+            logger.error('Failed to check user role:', err);
+          });
         } else {
           setIsHost(false);
         }
-        
+
         setIsLoading(false);
       }
     );
@@ -46,9 +47,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
-      
+
       if (session?.user) {
-        checkUserRole(session.user.id);
+        checkUserRole(session.user.id).catch(err => {
+          logger.error('Failed to check user role on init:', err);
+        });
       }
       setIsLoading(false);
     });
@@ -64,11 +67,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .eq('user_id', userId)
         .eq('role', 'host')
         .maybeSingle();
-      
+
       if (error) throw error;
       setIsHost(!!data);
     } catch (error) {
-      console.error('Error checking user role:', error);
+      logger.error('Error checking user role:', error);
       setIsHost(false);
     }
   };
@@ -129,7 +132,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         description: "期待再次見到您",
       });
     } catch (error) {
-      console.error('Error signing out:', error);
+      logger.error('Error signing out:', error);
     }
   };
 

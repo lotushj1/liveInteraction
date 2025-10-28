@@ -3,6 +3,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useParticipantContext } from '@/contexts/ParticipantContext';
 import { useNavigate } from 'react-router-dom';
+import { logger } from '@/lib/logger';
+import { STORAGE_KEYS } from '@/lib/constants';
 
 export const useParticipant = () => {
   const { toast } = useToast();
@@ -38,7 +40,7 @@ export const useParticipant = () => {
 
         if (existingParticipant) {
           // 使用者已加入，直接返回現有記錄
-          console.log('使用者已加入此活動，使用現有記錄');
+          logger.log('使用者已加入此活動，使用現有記錄');
           return { event, participant: existingParticipant };
         }
       }
@@ -67,7 +69,7 @@ export const useParticipant = () => {
         .single();
 
       if (participantError || !participant) {
-        console.error('加入活動錯誤:', participantError);
+        logger.error('加入活動錯誤:', participantError);
         throw new Error('加入活動失敗');
       }
 
@@ -77,8 +79,8 @@ export const useParticipant = () => {
       // 儲存到 context 和 localStorage
       setEvent(event);
       setParticipant(participant);
-      localStorage.setItem('participant_event_id', event.id);
-      localStorage.setItem('participant_id', participant.id);
+      localStorage.setItem(STORAGE_KEYS.PARTICIPANT_EVENT_ID, event.id);
+      localStorage.setItem(STORAGE_KEYS.PARTICIPANT_ID, participant.id);
 
       toast({
         title: "成功加入！",
@@ -100,8 +102,8 @@ export const useParticipant = () => {
   const leaveEvent = () => {
     setEvent(null);
     setParticipant(null);
-    localStorage.removeItem('participant_event_id');
-    localStorage.removeItem('participant_id');
+    localStorage.removeItem(STORAGE_KEYS.PARTICIPANT_EVENT_ID);
+    localStorage.removeItem(STORAGE_KEYS.PARTICIPANT_ID);
     navigate('/join');
   };
 

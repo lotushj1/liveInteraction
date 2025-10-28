@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { logger } from '@/lib/logger';
 
 interface Event {
   id: string;
@@ -44,77 +45,51 @@ export const useDisplayData = (eventId: string) => {
   const [pollResponses, setPollResponses] = useState<PollResponse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // 獲取活動資訊
-  const fetchEvent = async () => {
-    const { data, error } = await supabase
-      .from('events')
-      .select('id, title, current_mode, is_active, current_poll_id, current_quiz_id')
-      .eq('id', eventId)
-      .single();
-
-    if (!error && data) {
-      setEvent(data);
-    }
-  };
-
-  // 獲取參與者列表
-  const fetchParticipants = async () => {
-    const { data, error } = await supabase
-      .from('event_participants')
-      .select('id, nickname, joined_at')
-      .eq('event_id', eventId)
-      .order('joined_at', { ascending: true });
-
-    if (!error && data) {
-      setParticipants(data);
-    }
-  };
-
-  // 獲取 Q&A 問題
-  const fetchQuestions = async () => {
-    const { data, error } = await supabase
-      .from('questions')
-      .select('id, content, upvote_count, is_highlighted, status')
-      .eq('event_id', eventId)
-      .eq('status', 'approved')
-      .order('upvote_count', { ascending: false });
-
-    if (!error && data) {
-      setQuestions(data);
-    }
-  };
-
-  // 獲取當前投票
-  const fetchCurrentPoll = async () => {
-    if (!event?.current_poll_id) {
-      setCurrentPoll(null);
-      setPollResponses([]);
-      return;
-    }
-
-    const { data: pollData, error: pollError } = await supabase
-      .from('polls')
-      .select('*')
-      .eq('id', event.current_poll_id)
-      .single();
-
-    if (!pollError && pollData) {
-      setCurrentPoll(pollData);
-
-      // 獲取投票結果
-      const { data: responsesData, error: responsesError } = await supabase
-        .from('poll_responses')
-        .select('response')
-        .eq('poll_id', event.current_poll_id);
-
-      if (!responsesError && responsesData) {
-        setPollResponses(responsesData);
-      }
-    }
-  };
-
   // 初始化數據
   useEffect(() => {
+    const fetchEvent = async () => {
+      const { data, error } = await supabase
+        .from('events')
+        .select('id, title, current_mode, is_active, current_poll_id, current_quiz_id')
+        .eq('id', eventId)
+        .single();
+
+      if (error) {
+        logger.error('[useDisplayData] Error fetching event:', error);
+      } else if (data) {
+        setEvent(data);
+      }
+    };
+
+    const fetchParticipants = async () => {
+      const { data, error } = await supabase
+        .from('event_participants')
+        .select('id, nickname, joined_at')
+        .eq('event_id', eventId)
+        .order('joined_at', { ascending: true });
+
+      if (error) {
+        logger.error('[useDisplayData] Error fetching participants:', error);
+      } else if (data) {
+        setParticipants(data);
+      }
+    };
+
+    const fetchQuestions = async () => {
+      const { data, error } = await supabase
+        .from('questions')
+        .select('id, content, upvote_count, is_highlighted, status')
+        .eq('event_id', eventId)
+        .eq('status', 'approved')
+        .order('upvote_count', { ascending: false });
+
+      if (error) {
+        logger.error('[useDisplayData] Error fetching questions:', error);
+      } else if (data) {
+        setQuestions(data);
+      }
+    };
+
     const initData = async () => {
       setIsLoading(true);
       await Promise.all([
@@ -130,9 +105,42 @@ export const useDisplayData = (eventId: string) => {
 
   // 當活動模式改變時，獲取對應數據
   useEffect(() => {
-    if (event?.current_mode === 'poll') {
-      fetchCurrentPoll();
+    if (!event?.current_poll_id || event.current_mode !== 'poll') {
+      setCurrentPoll(null);
+      setPollResponses([]);
+      return;
     }
+
+    const fetchCurrentPoll = async () => {
+      const { data: pollData, error: pollError } = await supabase
+        .from('polls')
+        .select('*')
+        .eq('id', event.current_poll_id!)
+        .single();
+
+      if (pollError) {
+        logger.error('[useDisplayData] Error fetching poll:', pollError);
+        return;
+      }
+
+      if (pollData) {
+        setCurrentPoll(pollData);
+
+        // 獲取投票結果
+        const { data: responsesData, error: responsesError } = await supabase
+          .from('poll_responses')
+          .select('response')
+          .eq('poll_id', event.current_poll_id!);
+
+        if (responsesError) {
+          logger.error('[useDisplayData] Error fetching poll responses:', responsesError);
+        } else if (responsesData) {
+          setPollResponses(responsesData);
+        }
+      }
+    };
+
+    fetchCurrentPoll();
   }, [event?.current_mode, event?.current_poll_id]);
 
   // 即時監聽活動變更（優化：使用 payload 直接更新）
@@ -148,7 +156,7 @@ export const useDisplayData = (eventId: string) => {
           filter: `id=eq.${eventId}`,
         },
         (payload) => {
-          console.log('[useDisplayData] 事件更新:', payload);
+          logger.log('[useDisplayData] 事件更新:', payload);
           // 使用 payload.new 直接更新，避免 refetch
           if (payload.new) {
             setEvent(payload.new as Event);
@@ -175,7 +183,7 @@ export const useDisplayData = (eventId: string) => {
           filter: `event_id=eq.${eventId}`,
         },
         (payload) => {
-          console.log('[useDisplayData] 新參與者加入:', payload);
+          logger.log('[useDisplayData] 新參與者加入:', payload);
           if (payload.new) {
             setParticipants((prev) => [...prev, payload.new as Participant]);
           }
@@ -190,7 +198,7 @@ export const useDisplayData = (eventId: string) => {
           filter: `event_id=eq.${eventId}`,
         },
         (payload) => {
-          console.log('[useDisplayData] 參與者離開:', payload);
+          logger.log('[useDisplayData] 參與者離開:', payload);
           if (payload.old) {
             setParticipants((prev) => prev.filter((p) => p.id !== (payload.old as any).id));
           }
@@ -216,7 +224,7 @@ export const useDisplayData = (eventId: string) => {
           filter: `event_id=eq.${eventId}`,
         },
         (payload) => {
-          console.log('[useDisplayData] 新問題提交:', payload);
+          logger.log('[useDisplayData] 新問題提交:', payload);
           if (payload.new && (payload.new as any).status === 'approved') {
             setQuestions((prev) => [payload.new as Question, ...prev]);
           }
@@ -231,7 +239,7 @@ export const useDisplayData = (eventId: string) => {
           filter: `event_id=eq.${eventId}`,
         },
         (payload) => {
-          console.log('[useDisplayData] 問題更新:', payload);
+          logger.log('[useDisplayData] 問題更新:', payload);
           if (payload.new) {
             setQuestions((prev) =>
               prev.map((q) => (q.id === (payload.new as any).id ? (payload.new as Question) : q))
@@ -261,7 +269,7 @@ export const useDisplayData = (eventId: string) => {
           filter: `poll_id=eq.${event.current_poll_id}`,
         },
         (payload) => {
-          console.log('[useDisplayData] 新投票回應:', payload);
+          logger.log('[useDisplayData] 新投票回應:', payload);
           if (payload.new) {
             setPollResponses((prev) => [...prev, payload.new as PollResponse]);
           }
