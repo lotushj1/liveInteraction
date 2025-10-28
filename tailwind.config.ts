@@ -86,10 +86,10 @@ export default {
         },
         "glass-shimmer": {
           "0%, 100%": {
-            boxShadow: "0 0 20px rgba(158, 255, 200, 0.2)",
+            boxShadow: "0 0 20px rgba(255, 127, 0, 0.15)",
           },
           "50%": {
-            boxShadow: "0 0 40px rgba(158, 255, 200, 0.4)",
+            boxShadow: "0 0 40px rgba(255, 127, 0, 0.25)",
           },
         },
       },
