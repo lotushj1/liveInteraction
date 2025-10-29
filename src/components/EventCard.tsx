@@ -16,16 +16,18 @@ interface EventCardProps {
 
 export const EventCard = ({ event, onToggleActive, onView, onEdit, onDelete }: EventCardProps) => {
   return (
-    <Card className="hover-scale shadow-card">
+    <Card className={`hover-scale shadow-card ${!event.is_active ? 'opacity-75 bg-muted/50' : ''}`}>
       <CardHeader>
         <div className="flex items-start justify-between">
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-2">
-              <CardTitle className="text-xl">{event.title}</CardTitle>
-              <Badge 
+              <CardTitle className={`text-xl ${!event.is_active ? 'text-muted-foreground' : ''}`}>
+                {event.title}
+              </CardTitle>
+              <Badge
                 variant={event.event_type === 'quiz' ? 'default' : 'outline'}
-                className={event.event_type === 'quiz' 
-                  ? 'bg-gradient-to-r from-purple-500 to-pink-500 border-0' 
+                className={event.event_type === 'quiz'
+                  ? 'bg-gradient-to-r from-purple-500 to-pink-500 border-0'
                   : 'border-blue-500 text-blue-500'
                 }
               >
