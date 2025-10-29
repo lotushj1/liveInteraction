@@ -26,13 +26,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     // 設定 auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      async (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
 
         // 檢查角色
         if (session?.user) {
-          checkUserRole(session.user.id).catch(err => {
+          await checkUserRole(session.user.id).catch(err => {
             logger.error('Failed to check user role:', err);
           });
         } else {
@@ -44,12 +44,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     );
 
     // 檢查現有 session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
 
       if (session?.user) {
-        checkUserRole(session.user.id).catch(err => {
+        await checkUserRole(session.user.id).catch(err => {
           logger.error('Failed to check user role on init:', err);
         });
       }
@@ -69,7 +69,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .maybeSingle();
 
       if (error) throw error;
-      setIsHost(!!data);
+
+      // 如果沒有角色記錄，自動創建 host 角色
+      if (!data) {
+        logger.log('No host role found, creating one...');
+        const { error: insertError } = await supabase
+          .from('user_roles')
+          .insert([{ user_id: userId, role: 'host' }]);
+
+        if (insertError) {
+          logger.error('Error creating host role:', insertError);
+          setIsHost(false);
+        } else {
+          logger.log('Host role created successfully');
+          setIsHost(true);
+        }
+      } else {
+        setIsHost(true);
+      }
     } catch (error) {
       logger.error('Error checking user role:', error);
       setIsHost(false);
