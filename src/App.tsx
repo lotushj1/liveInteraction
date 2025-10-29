@@ -14,6 +14,7 @@ import CreateEvent from "./pages/CreateEvent";
 import EventDetail from "./pages/EventDetail";
 import Join from "./pages/Join";
 import Lobby from "./pages/participant/Lobby";
+import QnA from "./pages/participant/QnA";
 import Display from "./pages/Display";
 import NotFound from "./pages/NotFound";
 import { logger } from "@/lib/logger";
@@ -49,6 +50,7 @@ const App = () => (
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/join" element={<Join />} />
                 <Route path="/participant/:id/lobby" element={<Lobby />} />
+                <Route path="/participant/:id/qna" element={<QnA />} />
                 <Route path="/display/:id" element={<Display />} />
                 <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
                 <Route path="/dashboard/create-event" element={<ProtectedRoute><CreateEvent /></ProtectedRoute>} />

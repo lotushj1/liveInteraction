@@ -41,6 +41,26 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- 增加問題投票數
+CREATE OR REPLACE FUNCTION increment_upvote_count(question_id UUID)
+RETURNS VOID AS $$
+BEGIN
+  UPDATE questions
+  SET upvote_count = upvote_count + 1
+  WHERE id = question_id;
+END;
+$$ LANGUAGE plpgsql;
+
+-- 減少問題投票數
+CREATE OR REPLACE FUNCTION decrement_upvote_count(question_id UUID)
+RETURNS VOID AS $$
+BEGIN
+  UPDATE questions
+  SET upvote_count = GREATEST(0, upvote_count - 1)
+  WHERE id = question_id;
+END;
+$$ LANGUAGE plpgsql;
+
 -- 活動表 trigger（自動生成 join code）
 CREATE OR REPLACE FUNCTION set_join_code()
 RETURNS TRIGGER AS $$
@@ -106,7 +126,7 @@ CREATE TABLE quiz_responses (
 );
 
 -- Q&A 問題表
-CREATE TABLE questions (
+CREATE TABLE IF NOT EXISTS questions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   event_id UUID REFERENCES events(id) ON DELETE CASCADE,
   participant_id UUID REFERENCES event_participants(id) ON DELETE CASCADE,
@@ -114,6 +134,7 @@ CREATE TABLE questions (
   upvote_count INTEGER DEFAULT 0,
   is_highlighted BOOLEAN DEFAULT false,
   status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'answered', 'rejected')),
+  answered_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
