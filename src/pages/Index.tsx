@@ -1,8 +1,11 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Zap, MessageSquare, BarChart3, Sparkles, ArrowRight } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const Index = () => {
+  const navigate = useNavigate();
+
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
@@ -32,11 +35,11 @@ const Index = () => {
             </p>
             
             <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
-              <Button variant="hero" size="xl" className="group" onClick={() => window.location.href = '/auth'}>
+              <Button variant="hero" size="xl" className="group" onClick={() => navigate('/auth')}>
                 立即開始
                 <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
               </Button>
-              <Button variant="outline" size="xl">
+              <Button variant="outline" size="xl" onClick={() => navigate('/join')}>
                 觀看示範
               </Button>
             </div>
@@ -160,7 +163,7 @@ const Index = () => {
               <p className="mb-8 text-lg text-foreground lg:text-xl">
                 立即開始使用 LivePulse，讓你的活動更精彩
               </p>
-              <Button variant="default" size="xl" className="shadow-primary" onClick={() => window.location.href = '/auth'}>
+              <Button variant="default" size="xl" className="shadow-primary" onClick={() => navigate('/auth')}>
                 免費開始使用
               </Button>
             </div>

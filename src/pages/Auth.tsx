@@ -45,6 +45,8 @@ export default function Auth() {
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  const { isLoading: authLoading } = useAuth();
+
   // 如果已登入，重導向到儀表板
   useEffect(() => {
     if (user) {
@@ -53,8 +55,26 @@ export default function Auth() {
   }, [user, navigate]);
 
   // 在重導向時顯示載入畫面
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center gradient-hero">
+        <div className="text-center">
+          <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto mb-4" />
+          <p className="text-muted-foreground">載入中...</p>
+        </div>
+      </div>
+    );
+  }
+
   if (user) {
-    return null;
+    return (
+      <div className="min-h-screen flex items-center justify-center gradient-hero">
+        <div className="text-center">
+          <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto mb-4" />
+          <p className="text-muted-foreground">正在重導向...</p>
+        </div>
+      </div>
+    );
   }
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
