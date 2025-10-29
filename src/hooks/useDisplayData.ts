@@ -92,12 +92,17 @@ export const useDisplayData = (eventId: string) => {
 
     const initData = async () => {
       setIsLoading(true);
-      await Promise.all([
-        fetchEvent(),
-        fetchParticipants(),
-        fetchQuestions(),
-      ]);
-      setIsLoading(false);
+      try {
+        await Promise.all([
+          fetchEvent(),
+          fetchParticipants(),
+          fetchQuestions(),
+        ]);
+      } catch (error) {
+        logger.error('[useDisplayData] Error initializing data:', error);
+      } finally {
+        setIsLoading(false);
+      }
     };
 
     initData();

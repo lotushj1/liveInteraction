@@ -18,11 +18,18 @@ export const useParticipant = () => {
         .from('events')
         .select('*')
         .eq('join_code', joinCode.toUpperCase())
-        .eq('is_active', true)
         .single();
 
       if (eventError || !event) {
-        throw new Error('活動不存在或未啟動');
+        if (eventError?.code === 'PGRST116') {
+          throw new Error('活動代碼不正確，請檢查後重試');
+        }
+        throw new Error('找不到活動');
+      }
+
+      // 檢查活動是否已結束
+      if (event.ended_at) {
+        throw new Error('此活動已結束');
       }
 
       // 2. 獲取當前使用者
