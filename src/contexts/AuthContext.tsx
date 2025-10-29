@@ -61,6 +61,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const checkUserRole = async (userId: string) => {
     try {
+      logger.log('Checking user role for:', userId);
+
       const { data, error } = await supabase
         .from('user_roles')
         .select('role')
@@ -68,28 +70,51 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .eq('role', 'host')
         .maybeSingle();
 
-      if (error) throw error;
+      if (error) {
+        logger.error('Error querying user_roles:', error);
+        throw error;
+      }
 
       // 如果沒有角色記錄，自動創建 host 角色
       if (!data) {
-        logger.log('No host role found, creating one...');
-        const { error: insertError } = await supabase
+        logger.log('No host role found, creating one for user:', userId);
+
+        const { data: insertData, error: insertError } = await supabase
           .from('user_roles')
-          .insert([{ user_id: userId, role: 'host' }]);
+          .insert([{ user_id: userId, role: 'host' }])
+          .select()
+          .single();
 
         if (insertError) {
           logger.error('Error creating host role:', insertError);
+          // 如果是權限錯誤，顯示提示
+          if (insertError.code === '42501') {
+            toast({
+              title: "權限設置問題",
+              description: "無法自動創建主持人角色。請聯繫管理員或檢查資料庫 RLS 政策。",
+              variant: "destructive",
+            });
+          }
           setIsHost(false);
         } else {
-          logger.log('Host role created successfully');
+          logger.log('Host role created successfully:', insertData);
           setIsHost(true);
         }
       } else {
+        logger.log('Host role found:', data);
         setIsHost(true);
       }
-    } catch (error) {
-      logger.error('Error checking user role:', error);
-      setIsHost(false);
+    } catch (error: any) {
+      logger.error('Error in checkUserRole:', error);
+      // 即使出錯，也要設置 isHost 為 true，讓用戶至少能進入系統
+      logger.log('Setting isHost to true to allow access despite error');
+      setIsHost(true);
+
+      toast({
+        title: "角色檢查失敗",
+        description: "已允許您訪問系統，但部分功能可能受限。",
+        variant: "destructive",
+      });
     }
   };
 

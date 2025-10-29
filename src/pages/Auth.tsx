@@ -24,14 +24,8 @@ const signupSchema = loginSchema.extend({
 });
 export default function Auth() {
   const navigate = useNavigate();
-  const {
-    signIn,
-    signUp,
-    user
-  } = useAuth();
-  const {
-    toast
-  } = useToast();
+  const { signIn, signUp, user, isLoading: authLoading, isHost } = useAuth();
+  const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [loginForm, setLoginForm] = useState({
     email: '',
@@ -45,16 +39,14 @@ export default function Auth() {
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const { isLoading: authLoading } = useAuth();
-
-  // 如果已登入，重導向到儀表板
+  // 如果已登入且有角色，重導向到儀表板
   useEffect(() => {
-    if (user) {
+    if (user && !authLoading && isHost) {
       navigate('/dashboard', { replace: true });
     }
-  }, [user, navigate]);
+  }, [user, authLoading, isHost, navigate]);
 
-  // 在重導向時顯示載入畫面
+  // 在載入時顯示載入畫面
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center gradient-hero">
@@ -66,7 +58,8 @@ export default function Auth() {
     );
   }
 
-  if (user) {
+  // 如果已登入且角色已確認，顯示重導向畫面
+  if (user && isHost) {
     return (
       <div className="min-h-screen flex items-center justify-center gradient-hero">
         <div className="text-center">
