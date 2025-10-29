@@ -47,7 +47,16 @@ export const useDisplayData = (eventId: string) => {
 
   // 初始化數據
   useEffect(() => {
+    if (!eventId) {
+      logger.error('[useDisplayData] No eventId provided');
+      setIsLoading(false);
+      return;
+    }
+
+    logger.log('[useDisplayData] Initializing with eventId:', eventId);
+
     const fetchEvent = async () => {
+      logger.log('[useDisplayData] Fetching event...');
       const { data, error } = await supabase
         .from('events')
         .select('id, title, current_mode, is_active, current_poll_id, current_quiz_id')
@@ -56,12 +65,22 @@ export const useDisplayData = (eventId: string) => {
 
       if (error) {
         logger.error('[useDisplayData] Error fetching event:', error);
+        logger.error('[useDisplayData] Error details:', {
+          code: error.code,
+          message: error.message,
+          details: error.details,
+          hint: error.hint
+        });
       } else if (data) {
+        logger.log('[useDisplayData] Event fetched successfully:', data);
         setEvent(data);
+      } else {
+        logger.error('[useDisplayData] No event data returned');
       }
     };
 
     const fetchParticipants = async () => {
+      logger.log('[useDisplayData] Fetching participants...');
       const { data, error } = await supabase
         .from('event_participants')
         .select('id, nickname, joined_at')
@@ -71,11 +90,13 @@ export const useDisplayData = (eventId: string) => {
       if (error) {
         logger.error('[useDisplayData] Error fetching participants:', error);
       } else if (data) {
+        logger.log('[useDisplayData] Participants fetched:', data.length);
         setParticipants(data);
       }
     };
 
     const fetchQuestions = async () => {
+      logger.log('[useDisplayData] Fetching questions...');
       const { data, error } = await supabase
         .from('questions')
         .select('id, content, upvote_count, is_highlighted, status')
@@ -86,6 +107,7 @@ export const useDisplayData = (eventId: string) => {
       if (error) {
         logger.error('[useDisplayData] Error fetching questions:', error);
       } else if (data) {
+        logger.log('[useDisplayData] Questions fetched:', data.length);
         setQuestions(data);
       }
     };

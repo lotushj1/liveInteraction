@@ -13,31 +13,52 @@ export const useParticipant = () => {
 
   const joinEventMutation = useMutation({
     mutationFn: async ({ joinCode, nickname }: { joinCode: string; nickname: string }) => {
+      logger.log('[useParticipant] Joining event with code:', joinCode);
+
       // 1. 驗證並獲取活動
+      logger.log('[useParticipant] Step 1: Fetching event...');
       const { data: event, error: eventError } = await supabase
         .from('events')
         .select('*')
         .eq('join_code', joinCode.toUpperCase())
         .single();
 
-      if (eventError || !event) {
-        if (eventError?.code === 'PGRST116') {
+      if (eventError) {
+        logger.error('[useParticipant] Event fetch error:', eventError);
+        logger.error('[useParticipant] Error details:', {
+          code: eventError.code,
+          message: eventError.message,
+          details: eventError.details,
+          hint: eventError.hint
+        });
+        if (eventError.code === 'PGRST116') {
           throw new Error('活動代碼不正確，請檢查後重試');
         }
+        throw new Error(`查詢活動失敗: ${eventError.message}`);
+      }
+
+      if (!event) {
+        logger.error('[useParticipant] No event found with code:', joinCode);
         throw new Error('找不到活動');
       }
 
+      logger.log('[useParticipant] Event found:', event);
+
       // 檢查活動是否已結束
       if (event.ended_at) {
+        logger.log('[useParticipant] Event has ended:', event.ended_at);
         throw new Error('此活動已結束');
       }
 
       // 2. 獲取當前使用者
+      logger.log('[useParticipant] Step 2: Getting current user...');
       const { data: currentUser } = await supabase.auth.getUser();
       const userId = currentUser.user?.id || null;
+      logger.log('[useParticipant] User ID:', userId || 'anonymous');
 
       // 3. 檢查該使用者是否已加入此活動
       if (userId) {
+        logger.log('[useParticipant] Step 3: Checking existing participant...');
         const { data: existingParticipant } = await supabase
           .from('event_participants')
           .select('*')
@@ -47,24 +68,31 @@ export const useParticipant = () => {
 
         if (existingParticipant) {
           // 使用者已加入，直接返回現有記錄
-          logger.log('使用者已加入此活動，使用現有記錄');
+          logger.log('[useParticipant] User already joined, using existing record');
           return { event, participant: existingParticipant };
         }
       }
 
       // 4. 檢查暱稱是否重複（只對新加入的檢查）
-      const { data: existingNickname } = await supabase
+      logger.log('[useParticipant] Step 4: Checking nickname availability...');
+      const { data: existingNickname, error: nicknameError } = await supabase
         .from('event_participants')
         .select('id')
         .eq('event_id', event.id)
         .eq('nickname', nickname)
         .maybeSingle();
 
+      if (nicknameError) {
+        logger.error('[useParticipant] Nickname check error:', nicknameError);
+      }
+
       if (existingNickname) {
+        logger.log('[useParticipant] Nickname already taken');
         throw new Error('此暱稱已被使用，請換一個');
       }
 
       // 5. 建立新的參與記錄
+      logger.log('[useParticipant] Step 5: Creating participant record...');
       const { data: participant, error: participantError } = await supabase
         .from('event_participants')
         .insert({
@@ -75,11 +103,23 @@ export const useParticipant = () => {
         .select()
         .single();
 
-      if (participantError || !participant) {
-        logger.error('加入活動錯誤:', participantError);
-        throw new Error('加入活動失敗');
+      if (participantError) {
+        logger.error('[useParticipant] Participant creation error:', participantError);
+        logger.error('[useParticipant] Error details:', {
+          code: participantError.code,
+          message: participantError.message,
+          details: participantError.details,
+          hint: participantError.hint
+        });
+        throw new Error(`加入活動失敗: ${participantError.message}`);
       }
 
+      if (!participant) {
+        logger.error('[useParticipant] No participant data returned');
+        throw new Error('加入活動失敗：無法創建參與記錄');
+      }
+
+      logger.log('[useParticipant] Successfully joined event:', participant);
       return { event, participant };
     },
     onSuccess: ({ event, participant }) => {
