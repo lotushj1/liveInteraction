@@ -1,20 +1,18 @@
 /**
- * Logger utility - 在開發環境顯示日誌，生產環境只顯示錯誤
+ * Logger utility - 輸出所有日誌以便診斷問題
  */
-
-const isDev = import.meta.env.DEV;
 
 export const logger = {
   log: (...args: any[]) => {
-    if (isDev) console.log(...args);
+    console.log(...args);
   },
   error: (...args: any[]) => {
-    console.error(...args); // 錯誤永遠保留
+    console.error(...args);
   },
   warn: (...args: any[]) => {
-    if (isDev) console.warn(...args);
+    console.warn(...args);
   },
   info: (...args: any[]) => {
-    if (isDev) console.info(...args);
+    console.info(...args);
   },
 };

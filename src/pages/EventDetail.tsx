@@ -1,12 +1,17 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useEvents } from '@/hooks/useEvents';
+import { useQuestions } from '@/hooks/useQuestions';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ArrowLeft, Users, MessageSquare, HelpCircle, Calendar, ExternalLink } from 'lucide-react';
 import { format } from 'date-fns';
 import { zhTW } from 'date-fns/locale';
+import { HostQuestionList } from '@/components/qna/HostQuestionList';
+import { useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
 export default function EventDetail() {
   const { id } = useParams<{ id: string }>();
@@ -14,6 +19,39 @@ export default function EventDetail() {
   const { events } = useEvents();
 
   const event = events?.find((e) => e.id === id);
+
+  // 只有在活動存在且是 Q&A 類型時才使用 useQuestions
+  const {
+    questions,
+    updateQuestionStatus,
+    updateQuestion,
+    deleteQuestion,
+  } = useQuestions(id || '');
+
+  // 即時監聽問題變更
+  useEffect(() => {
+    if (!id || !event || event.event_type !== 'qna') return;
+
+    const channel = supabase
+      .channel(`questions:${id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'questions',
+          filter: `event_id=eq.${id}`,
+        },
+        () => {
+          // 當有變更時，React Query 會自動重新抓取
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [id, event]);
 
   if (!event) {
     return (
@@ -120,6 +158,32 @@ export default function EventDetail() {
           </CardContent>
         </Card>
 
+        {/* Q&A 問題管理 - 只在 Q&A 類型活動顯示 */}
+        {event.event_type === 'qna' && event.qna_enabled && (
+          <Card className="glass-card">
+            <CardHeader>
+              <CardTitle>Q&A 問題管理</CardTitle>
+              <CardDescription>管理參與者提出的問題</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <HostQuestionList
+                questions={questions || []}
+                onMarkAnswered={(questionId) => {
+                  updateQuestionStatus({ questionId, status: 'answered' });
+                }}
+                onToggleHighlight={(questionId, isHighlighted) => {
+                  updateQuestion({ questionId, updates: { is_highlighted: isHighlighted } });
+                }}
+                onDelete={(questionId) => {
+                  if (confirm('確定要刪除這個問題嗎？')) {
+                    deleteQuestion(questionId);
+                  }
+                }}
+              />
+            </CardContent>
+          </Card>
+        )}
+
         {/* 統計資訊 */}
         <Card className="glass-card">
           <CardHeader>
@@ -134,7 +198,9 @@ export default function EventDetail() {
               </div>
               <div className="space-y-1">
                 <p className="text-sm text-muted-foreground">提問數</p>
-                <p className="text-2xl font-bold">-</p>
+                <p className="text-2xl font-bold">
+                  {event.event_type === 'qna' ? questions?.length || 0 : '-'}
+                </p>
               </div>
               <div className="space-y-1">
                 <p className="text-sm text-muted-foreground">測驗題目</p>
