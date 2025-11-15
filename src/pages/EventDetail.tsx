@@ -1,15 +1,17 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useEvents } from '@/hooks/useEvents';
 import { useQuestions } from '@/hooks/useQuestions';
+import { useQuizStats } from '@/hooks/useQuizStats';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, Users, MessageSquare, HelpCircle, Calendar, ExternalLink } from 'lucide-react';
+import { ArrowLeft, Users, MessageSquare, HelpCircle, Calendar, ExternalLink, Zap } from 'lucide-react';
 import { format } from 'date-fns';
 import { zhTW } from 'date-fns/locale';
 import { HostQuestionList } from '@/components/qna/HostQuestionList';
+import { QuizManager } from '@/components/quiz/QuizManager';
 import { useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -27,6 +29,9 @@ export default function EventDetail() {
     updateQuestion,
     deleteQuestion,
   } = useQuestions(id || '');
+
+  // 獲取 Quiz 統計資料
+  const { data: quizStats } = useQuizStats(id || '');
 
   // 即時監聽問題變更
   useEffect(() => {
@@ -184,6 +189,11 @@ export default function EventDetail() {
           </Card>
         )}
 
+        {/* Quiz 測驗管理 - 只在 Quiz 類型活動顯示 */}
+        {event.event_type === 'quiz' && (
+          <QuizManager eventId={event.id} />
+        )}
+
         {/* 統計資訊 */}
         <Card className="glass-card">
           <CardHeader>
@@ -191,29 +201,49 @@ export default function EventDetail() {
             <CardDescription>目前活動的即時統計資訊</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="space-y-1">
-                <p className="text-sm text-muted-foreground">參與人數</p>
-                <p className="text-2xl font-bold">-</p>
+            {event.event_type === 'qna' ? (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="space-y-1">
+                  <p className="text-sm text-muted-foreground">參與人數</p>
+                  <p className="text-2xl font-bold">{quizStats?.participantCount || 0}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm text-muted-foreground">提問總數</p>
+                  <p className="text-2xl font-bold">{questions?.length || 0}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm text-muted-foreground">已回答</p>
+                  <p className="text-2xl font-bold">
+                    {questions?.filter(q => q.status === 'answered').length || 0}
+                  </p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm text-muted-foreground">總投票數</p>
+                  <p className="text-2xl font-bold">
+                    {questions?.reduce((sum, q) => sum + (q.upvote_count || 0), 0) || 0}
+                  </p>
+                </div>
               </div>
-              <div className="space-y-1">
-                <p className="text-sm text-muted-foreground">提問數</p>
-                <p className="text-2xl font-bold">
-                  {event.event_type === 'qna' ? questions?.length || 0 : '-'}
-                </p>
+            ) : (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="space-y-1">
+                  <p className="text-sm text-muted-foreground">參與人數</p>
+                  <p className="text-2xl font-bold">{quizStats?.participantCount || 0}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm text-muted-foreground">測驗題目</p>
+                  <p className="text-2xl font-bold">{quizStats?.totalQuestions || 0}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm text-muted-foreground">答題次數</p>
+                  <p className="text-2xl font-bold">{quizStats?.totalResponses || 0}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm text-muted-foreground">平均得分</p>
+                  <p className="text-2xl font-bold">{quizStats?.averageScore || 0}</p>
+                </div>
               </div>
-              <div className="space-y-1">
-                <p className="text-sm text-muted-foreground">測驗題目</p>
-                <p className="text-2xl font-bold">-</p>
-              </div>
-              <div className="space-y-1">
-                <p className="text-sm text-muted-foreground">活動時長</p>
-                <p className="text-2xl font-bold">-</p>
-              </div>
-            </div>
-            <p className="text-sm text-muted-foreground mt-4">
-              詳細統計功能開發中...
-            </p>
+            )}
           </CardContent>
         </Card>
       </div>

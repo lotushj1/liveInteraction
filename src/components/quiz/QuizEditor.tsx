@@ -2,9 +2,11 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Plus, Pencil, Check, X } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Plus, Pencil, Check, X, BarChart3 } from 'lucide-react';
 import { QuestionCard } from './QuestionCard';
 import { QuestionEditor } from './QuestionEditor';
+import { QuizStatistics } from './QuizStatistics';
 import { useQuizQuestions, useCreateQuestion, useUpdateQuestion, useDeleteQuestion } from '@/hooks/useQuiz';
 import {
   AlertDialog,
@@ -119,36 +121,52 @@ export function QuizEditor({ quiz, onUpdateTitle }: QuizEditorProps) {
           </div>
         </CardHeader>
 
-        <CardContent className="space-y-4">
-          {isLoading ? (
-            <div className="text-center py-8 text-muted-foreground">載入中...</div>
-          ) : questions.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              <p className="mb-4">還沒有題目</p>
-              <Button onClick={handleAddQuestion}>
-                <Plus className="w-4 h-4 mr-2" />
-                新增第一題
-              </Button>
-            </div>
-          ) : (
-            <>
-              <div className="space-y-2">
-                {questions.map((question) => (
-                  <QuestionCard
-                    key={question.id}
-                    question={question}
-                    onEdit={() => handleEditQuestion(question)}
-                    onDelete={() => handleDeleteClick(question.id)}
-                  />
-                ))}
-              </div>
+        <CardContent>
+          <Tabs defaultValue="questions" className="w-full">
+            <TabsList className="grid w-full grid-cols-2 mb-4">
+              <TabsTrigger value="questions">題目管理</TabsTrigger>
+              <TabsTrigger value="statistics">
+                <BarChart3 className="w-4 h-4 mr-2" />
+                答題統計
+              </TabsTrigger>
+            </TabsList>
 
-              <Button onClick={handleAddQuestion} className="w-full">
-                <Plus className="w-4 h-4 mr-2" />
-                新增題目
-              </Button>
-            </>
-          )}
+            <TabsContent value="questions" className="space-y-4">
+              {isLoading ? (
+                <div className="text-center py-8 text-muted-foreground">載入中...</div>
+              ) : questions.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <p className="mb-4">還沒有題目</p>
+                  <Button onClick={handleAddQuestion}>
+                    <Plus className="w-4 h-4 mr-2" />
+                    新增第一題
+                  </Button>
+                </div>
+              ) : (
+                <>
+                  <div className="space-y-2">
+                    {questions.map((question) => (
+                      <QuestionCard
+                        key={question.id}
+                        question={question}
+                        onEdit={() => handleEditQuestion(question)}
+                        onDelete={() => handleDeleteClick(question.id)}
+                      />
+                    ))}
+                  </div>
+
+                  <Button onClick={handleAddQuestion} className="w-full">
+                    <Plus className="w-4 h-4 mr-2" />
+                    新增題目
+                  </Button>
+                </>
+              )}
+            </TabsContent>
+
+            <TabsContent value="statistics">
+              <QuizStatistics quizId={quiz.id} quizTitle={quiz.title} />
+            </TabsContent>
+          </Tabs>
         </CardContent>
       </Card>
 
