@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Zap, MessageSquare, BarChart3, Sparkles, ArrowRight } from "lucide-react";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Zap, MessageSquare, BarChart3, Sparkles, ArrowRight, Check, Star } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Header } from "@/components/landing/Header";
 import { Footer } from "@/components/landing/Footer";
@@ -150,6 +151,176 @@ const Index = () => {
                 大螢幕展示，全場參與
               </p>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Pricing Section */}
+      <section id="pricing" className="py-20 lg:py-32">
+        <div className="container mx-auto px-4">
+          <div className="mb-16 text-center">
+            <h2 className="mb-4 text-3xl font-bold lg:text-5xl">
+              簡單透明的價格方案
+            </h2>
+            <p className="text-lg text-muted-foreground">
+              無論是個人活動還是企業需求，都有適合您的方案
+            </p>
+          </div>
+
+          <div className="mx-auto grid max-w-6xl gap-8 md:grid-cols-3">
+            {/* Free Plan */}
+            <Card className="glass-card relative border-2 transition-all hover:shadow-card">
+              <CardHeader>
+                <CardTitle className="text-2xl">入門版</CardTitle>
+                <CardDescription className="text-base">適合小型活動與個人使用</CardDescription>
+                <div className="mt-4">
+                  <span className="text-4xl font-bold">免費</span>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <ul className="space-y-3">
+                  <li className="flex items-start gap-2">
+                    <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                    <span className="text-sm">最多 <strong>50 位</strong>參與者</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                    <span className="text-sm">基本 Q&A 功能</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                    <span className="text-sm">基本投票功能</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                    <span className="text-sm">即時展示畫面</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                    <span className="text-sm">社群支援</span>
+                  </li>
+                </ul>
+              </CardContent>
+              <CardFooter>
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => navigate('/auth')}
+                >
+                  開始使用
+                </Button>
+              </CardFooter>
+            </Card>
+
+            {/* Pro Plan - Highlighted */}
+            <Card className="glass-card relative border-2 border-primary shadow-primary transition-all hover:shadow-primary scale-105">
+              <div className="absolute -top-4 left-1/2 -translate-x-1/2">
+                <Badge className="bg-gradient-to-r from-primary to-accent text-white px-4 py-1 shadow-primary">
+                  <Star className="h-3 w-3 mr-1 fill-current" />
+                  最受歡迎
+                </Badge>
+              </div>
+              <CardHeader className="pt-8">
+                <CardTitle className="text-2xl">專業版</CardTitle>
+                <CardDescription className="text-base">適合中大型活動與專業使用</CardDescription>
+                <div className="mt-4">
+                  <span className="text-4xl font-bold">NT$ 1,990</span>
+                  <span className="text-muted-foreground"> / 月</span>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <ul className="space-y-3">
+                  <li className="flex items-start gap-2">
+                    <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                    <span className="text-sm">最多 <strong>500 位</strong>參與者</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                    <span className="text-sm">完整 Q&A + 問答競賽</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                    <span className="text-sm">進階投票功能（文字雲、評分）</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                    <span className="text-sm">自訂品牌 Logo</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                    <span className="text-sm">活動數據匯出</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                    <span className="text-sm">優先客服支援</span>
+                  </li>
+                </ul>
+              </CardContent>
+              <CardFooter>
+                <Button
+                  variant="gradient"
+                  className="w-full shadow-primary"
+                  onClick={() => navigate('/auth')}
+                >
+                  立即升級
+                </Button>
+              </CardFooter>
+            </Card>
+
+            {/* Enterprise Plan */}
+            <Card className="glass-card relative border-2 transition-all hover:shadow-card">
+              <CardHeader>
+                <CardTitle className="text-2xl">企業版</CardTitle>
+                <CardDescription className="text-base">適合大型企業與特殊需求</CardDescription>
+                <div className="mt-4">
+                  <span className="text-4xl font-bold">客製報價</span>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <ul className="space-y-3">
+                  <li className="flex items-start gap-2">
+                    <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                    <span className="text-sm"><strong>無限</strong>參與者</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                    <span className="text-sm">所有專業版功能</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                    <span className="text-sm">客製化功能開發</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                    <span className="text-sm">專屬帳號管理</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                    <span className="text-sm">API 整合支援</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                    <span className="text-sm">24/7 專屬客服</span>
+                  </li>
+                </ul>
+              </CardContent>
+              <CardFooter>
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => navigate('/auth')}
+                >
+                  聯絡我們
+                </Button>
+              </CardFooter>
+            </Card>
+          </div>
+
+          {/* Additional Info */}
+          <div className="mt-12 text-center">
+            <p className="text-sm text-muted-foreground">
+              所有方案皆包含基本功能 · 隨時可升級或降級 · 無需綁約
+            </p>
           </div>
         </div>
       </section>
