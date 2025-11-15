@@ -20,8 +20,8 @@ export const ThemeToggle = () => {
           className="h-9 w-9"
           aria-label="切換主題"
         >
-          <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-          <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+          <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0 stroke-[2]" />
+          <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100 stroke-[2]" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="glass-card min-w-[140px]">
@@ -29,7 +29,7 @@ export const ThemeToggle = () => {
           onClick={() => setTheme('light')}
           className="cursor-pointer"
         >
-          <Sun className="mr-2 h-4 w-4" />
+          <Sun className="mr-2 h-4 w-4 stroke-[2]" />
           <span>淺色模式</span>
           {theme === 'light' && (
             <span className="ml-auto text-primary">✓</span>
@@ -39,7 +39,7 @@ export const ThemeToggle = () => {
           onClick={() => setTheme('dark')}
           className="cursor-pointer"
         >
-          <Moon className="mr-2 h-4 w-4" />
+          <Moon className="mr-2 h-4 w-4 stroke-[2]" />
           <span>深色模式</span>
           {theme === 'dark' && (
             <span className="ml-auto text-primary">✓</span>
@@ -49,7 +49,7 @@ export const ThemeToggle = () => {
           onClick={() => setTheme('system')}
           className="cursor-pointer"
         >
-          <Monitor className="mr-2 h-4 w-4" />
+          <Monitor className="mr-2 h-4 w-4 stroke-[2]" />
           <span>跟隨系統</span>
           {theme === 'system' && (
             <span className="ml-auto text-primary">✓</span>
