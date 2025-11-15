@@ -12,6 +12,7 @@ import { format } from 'date-fns';
 import { zhTW } from 'date-fns/locale';
 import { HostQuestionList } from '@/components/qna/HostQuestionList';
 import { QuizManager } from '@/components/quiz/QuizManager';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import { useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -83,15 +84,17 @@ export default function EventDetail() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted p-4 md:p-8">
       <div className="max-w-4xl mx-auto space-y-6">
-        {/* 返回按鈕 */}
-        <Button
-          variant="ghost"
-          onClick={() => navigate('/dashboard')}
-          className="mb-4"
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          返回控制台
-        </Button>
+        {/* 返回按鈕與主題切換 */}
+        <div className="flex items-center justify-between mb-4">
+          <Button
+            variant="ghost"
+            onClick={() => navigate('/dashboard')}
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            返回控制台
+          </Button>
+          <ThemeToggle />
+        </div>
 
         {/* 活動標題卡片 */}
         <Card className="glass-card">

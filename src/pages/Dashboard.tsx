@@ -3,6 +3,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useEvents } from '@/hooks/useEvents';
 import { Button } from '@/components/ui/button';
 import { EventCard } from '@/components/EventCard';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import { Plus, LogOut, Loader2 } from 'lucide-react';
 import {
   AlertDialog,
@@ -64,6 +65,7 @@ export default function Dashboard() {
                 <p className="text-sm font-medium">{user?.email}</p>
                 <p className="text-xs text-muted-foreground">主持人</p>
               </div>
+              <ThemeToggle />
               <Button variant="ghost" size="sm" onClick={signOut}>
                 <LogOut className="w-4 h-4" />
               </Button>

@@ -1,5 +1,6 @@
 import { useParams } from 'react-router-dom';
 import { useDisplayData } from '@/hooks/useDisplayData';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import { Loader2, Users, Calendar } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { formatDistanceToNow } from 'date-fns';
@@ -68,12 +69,15 @@ export default function Display() {
                 </div>
               </div>
             </div>
-            <Badge 
-              variant={event.is_active ? "default" : "secondary"} 
-              className="text-lg px-6 py-3"
-            >
-              {event.is_active ? '進行中' : '等候中'}
-            </Badge>
+            <div className="flex items-center gap-4">
+              <Badge
+                variant={event.is_active ? "default" : "secondary"}
+                className="text-lg px-6 py-3"
+              >
+                {event.is_active ? '進行中' : '等候中'}
+              </Badge>
+              <ThemeToggle />
+            </div>
           </div>
         </div>
       </div>
