@@ -46,6 +46,7 @@ export function QuestionEditor({ open, onOpenChange, question, onSave }: Questio
     { id: 1, text: '', isCorrect: false },
   ]);
   const [timeLimit, setTimeLimit] = useState(30);
+  const [isUnlimited, setIsUnlimited] = useState(false);
   const [points, setPoints] = useState(100);
 
   // AI 生成相關狀態
@@ -58,7 +59,9 @@ export function QuestionEditor({ open, onOpenChange, question, onSave }: Questio
       setQuestionText(question.question_text);
       setImageUrl(question.image_url || '');
       setOptions(question.options);
-      setTimeLimit(question.time_limit);
+      const isNoTimeLimit = question.time_limit === 0;
+      setIsUnlimited(isNoTimeLimit);
+      setTimeLimit(isNoTimeLimit ? 30 : question.time_limit);
       setPoints(question.points);
     } else {
       resetForm();
@@ -74,6 +77,7 @@ export function QuestionEditor({ open, onOpenChange, question, onSave }: Questio
       { id: 1, text: '', isCorrect: false },
     ]);
     setTimeLimit(30);
+    setIsUnlimited(false);
     setPoints(100);
     setAiTopic('');
     setAiContext('');
@@ -97,20 +101,11 @@ export function QuestionEditor({ open, onOpenChange, question, onSave }: Questio
   };
 
   const handleAIGenerate = async () => {
-    if (!isPremium) {
-      toast({
-        title: '需要升級會員',
-        description: 'AI 生成功能僅限付費會員使用',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    const apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY;
+    const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
     if (!apiKey) {
       toast({
         title: '設定錯誤',
-        description: '請設定 VITE_ANTHROPIC_API_KEY 環境變數',
+        description: '請設定 VITE_GEMINI_API_KEY 環境變數',
         variant: 'destructive',
       });
       return;
@@ -175,31 +170,37 @@ ${aiContext}
   "points": 100
 }`;
 
-      const response = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': apiKey,
-          'anthropic-version': '2023-06-01',
-        },
-        body: JSON.stringify({
-          model: 'claude-3-5-sonnet-20241022',
-          max_tokens: 2048,
-          messages: [
-            {
-              role: 'user',
-              content: prompt,
+      const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            contents: [
+              {
+                parts: [
+                  {
+                    text: prompt,
+                  },
+                ],
+              },
+            ],
+            generationConfig: {
+              temperature: 0.7,
+              maxOutputTokens: 2048,
             },
-          ],
-        }),
-      });
+          }),
+        }
+      );
 
       if (!response.ok) {
         throw new Error(`API 請求失敗: ${response.statusText}`);
       }
 
       const data = await response.json();
-      const content = data.content[0].text;
+      const content = data.candidates[0].content.parts[0].text;
 
       // 解析 JSON
       let jsonText = content;
@@ -249,7 +250,7 @@ ${aiContext}
     onSave({
       question_text: questionText,
       options,
-      time_limit: timeLimit,
+      time_limit: isUnlimited ? 0 : timeLimit,
       points,
       image_url: imageUrl || undefined,
     });
@@ -279,10 +280,9 @@ ${aiContext}
         <Tabs value={mode} onValueChange={(v) => setMode(v as 'manual' | 'ai')} className="w-full">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="manual">手動輸入</TabsTrigger>
-            <TabsTrigger value="ai" disabled={!isPremium}>
+            <TabsTrigger value="ai">
               <Sparkles className="w-4 h-4 mr-1" />
               AI 建立
-              {!isPremium && <span className="ml-1 text-xs">👑</span>}
             </TabsTrigger>
           </TabsList>
 
@@ -407,15 +407,35 @@ ${aiContext}
             </p>
           </div>
 
-          <div className="space-y-2">
-            <Label>⏱️ 答題時限：{timeLimit} 秒</Label>
-            <Slider
-              value={[timeLimit]}
-              onValueChange={([value]) => setTimeLimit(value)}
-              min={10}
-              max={120}
-              step={5}
-            />
+          <div className="space-y-3">
+            <Label htmlFor="time-limit">⏱️ 答題時限</Label>
+            <div className="flex items-center gap-3">
+              <Input
+                id="time-limit"
+                type="number"
+                value={timeLimit}
+                onChange={(e) => setTimeLimit(Math.max(5, Math.min(300, Number(e.target.value))))}
+                min={5}
+                max={300}
+                step={5}
+                disabled={isUnlimited}
+                className="w-32"
+              />
+              <span className="text-sm text-muted-foreground">秒</span>
+              <div className="flex items-center gap-2 ml-auto">
+                <Checkbox
+                  id="unlimited-time"
+                  checked={isUnlimited}
+                  onCheckedChange={(checked) => setIsUnlimited(!!checked)}
+                />
+                <Label htmlFor="unlimited-time" className="font-normal cursor-pointer">
+                  不限時
+                </Label>
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {isUnlimited ? '參與者可以不限時間作答' : `參與者需要在 ${timeLimit} 秒內作答`}
+            </p>
           </div>
 
           <div className="space-y-2">

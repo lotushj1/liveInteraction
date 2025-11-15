@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useEvents } from '@/hooks/useEvents';
+import { useCreateQuiz, useCreateQuestion } from '@/hooks/useQuiz';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -8,6 +9,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { TemplateSelector } from '@/components/TemplateSelector';
+import { QuizTemplate } from '@/data/templates';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 import { z } from 'zod';
 
@@ -21,32 +24,92 @@ const createEventSchema = z.object({
 export default function CreateEvent() {
   const navigate = useNavigate();
   const { createEvent, isCreating } = useEvents();
-  
+  const createQuiz = useCreateQuiz();
+  const createQuestion = useCreateQuestion();
+
+  const [step, setStep] = useState<'template' | 'form'>('template');
+  const [selectedTemplate, setSelectedTemplate] = useState<QuizTemplate | null>(null);
+
   const [form, setForm] = useState({
     title: '',
     description: '',
     event_type: 'qna' as 'qna' | 'quiz',
     qna_enabled: true,
   });
-  
+
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const handleTemplateSelect = (template: QuizTemplate) => {
+    setSelectedTemplate(template);
+    setForm({
+      title: template.title,
+      description: template.description,
+      event_type: template.event_type,
+      qna_enabled: template.qna_enabled,
+    });
+    setStep('form');
+  };
+
+  const handleSkipTemplate = () => {
+    setSelectedTemplate(null);
+    setStep('form');
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors({});
-    
+
     try {
       const validated = createEventSchema.parse(form);
-      createEvent({
-        title: validated.title,
-        description: validated.description,
-        event_type: validated.event_type,
-        qna_enabled: validated.event_type === 'qna' ? validated.qna_enabled : false,
-      }, {
-        onSuccess: () => {
-          navigate('/dashboard');
+
+      createEvent(
+        {
+          title: validated.title,
+          description: validated.description,
+          event_type: validated.event_type,
+          qna_enabled: validated.event_type === 'qna' ? validated.qna_enabled : false,
         },
-      });
+        {
+          onSuccess: async (event) => {
+            // If using template and it's a quiz, create quiz with questions
+            if (selectedTemplate && validated.event_type === 'quiz') {
+              try {
+                // Create quiz first
+                await createQuiz.mutateAsync({
+                  eventId: event.id,
+                  title: validated.title,
+                });
+
+                // Get the quiz we just created
+                // Since we just created it, it should be the only quiz for this event
+                // We'll need to wait a moment for it to be available
+                setTimeout(async () => {
+                  // Create all questions from template
+                  for (const question of selectedTemplate.questions) {
+                    await createQuestion.mutateAsync({
+                      eventId: event.id,
+                      questionData: {
+                        question_text: question.question_text,
+                        options: question.options.map((opt, idx) => ({
+                          id: idx,
+                          text: opt.text,
+                          isCorrect: opt.isCorrect,
+                        })),
+                        time_limit: question.time_limit,
+                        points: question.points,
+                      },
+                    });
+                  }
+                }, 500);
+              } catch (error) {
+                console.error('Error creating template questions:', error);
+              }
+            }
+
+            navigate('/dashboard');
+          },
+        }
+      );
     } catch (err) {
       if (err instanceof z.ZodError) {
         const fieldErrors: Record<string, string> = {};
@@ -62,30 +125,54 @@ export default function CreateEvent() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
-      <div className="container mx-auto px-4 py-8 max-w-2xl">
+      <div className="container mx-auto px-4 py-8 max-w-4xl">
         <Button
           variant="ghost"
-          onClick={() => navigate('/dashboard')}
+          onClick={() => {
+            if (step === 'form' && !isCreating) {
+              setStep('template');
+            } else {
+              navigate('/dashboard');
+            }
+          }}
           className="mb-6"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
-          返回儀表板
+          {step === 'form' ? '返回模版選擇' : '返回儀表板'}
         </Button>
 
-        <div className="mb-8 animate-fade-in">
-          <h1 className="text-4xl font-bold mb-2">建立新活動</h1>
-          <p className="text-muted-foreground">設定您的互動活動資訊</p>
-        </div>
+        {step === 'template' ? (
+          <div className="animate-fade-in">
+            <TemplateSelector
+              onSelectTemplate={handleTemplateSelect}
+              onSkip={handleSkipTemplate}
+            />
+          </div>
+        ) : (
+          <>
+            <div className="mb-8 animate-fade-in max-w-2xl mx-auto">
+              <h1 className="text-4xl font-bold mb-2">
+                {selectedTemplate ? '使用模版建立活動' : '建立新活動'}
+              </h1>
+              <p className="text-muted-foreground">
+                {selectedTemplate
+                  ? `使用「${selectedTemplate.title}」模版，您可以修改活動資訊`
+                  : '設定您的互動活動資訊'}
+              </p>
+            </div>
 
-        <Card className="animate-fade-in shadow-card">
-          <CardHeader>
-            <CardTitle>活動資訊</CardTitle>
-            <CardDescription>
-              輸入活動的基本資訊。建立後系統會自動生成 6 位數的加入碼。
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="max-w-2xl mx-auto">
+              <Card className="animate-fade-in shadow-card">
+                <CardHeader>
+                  <CardTitle>活動資訊</CardTitle>
+                  <CardDescription>
+                    {selectedTemplate
+                      ? '模版資訊已自動填入，您可以根據需要進行修改。'
+                      : '輸入活動的基本資訊。建立後系統會自動生成 6 位數的加入碼。'}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-4">
                 <Label>活動類型 *</Label>
                 <RadioGroup
@@ -196,10 +283,13 @@ export default function CreateEvent() {
                   {isCreating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   建立活動
                 </Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
+                    </div>
+                  </form>
+                </CardContent>
+              </Card>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
