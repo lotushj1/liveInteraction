@@ -1,5 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useEvent } from '@/hooks/useEvents';
+import { useQuizzes, useCreateQuiz, useUpdateQuiz } from '@/hooks/useQuiz';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -8,15 +9,28 @@ import { QuizEditor } from '@/components/quiz/QuizEditor';
 import { ArrowLeft, Loader2, Calendar, Users, Copy, CheckCircle2 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { zhTW } from 'date-fns/locale';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 
 export default function EventDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { event, isLoading } = useEvent(id!);
+  const { data: quizzes = [], isLoading: quizzesLoading } = useQuizzes(id!);
+  const createQuiz = useCreateQuiz();
+  const updateQuiz = useUpdateQuiz();
   const { toast } = useToast();
   const [copied, setCopied] = useState(false);
+
+  // Auto-create quiz for quiz-type events if none exists
+  useEffect(() => {
+    if (event?.event_type === 'quiz' && !quizzesLoading && quizzes.length === 0) {
+      createQuiz.mutate({
+        eventId: event.id,
+        title: event.title,
+      });
+    }
+  }, [event, quizzes, quizzesLoading]);
 
   const handleCopyJoinCode = () => {
     if (event?.join_code) {
@@ -142,9 +156,18 @@ export default function EventDetail() {
         </Card>
 
         {/* Quiz Editor for Quiz Type Events */}
-        {event.event_type === 'quiz' && (
+        {event.event_type === 'quiz' && quizzes[0] && (
           <div className="animate-fade-in">
-            <QuizEditor eventId={event.id} />
+            <QuizEditor
+              quiz={quizzes[0]}
+              onUpdateTitle={(title) => updateQuiz.mutate({ id: quizzes[0].id, title })}
+            />
+          </div>
+        )}
+
+        {event.event_type === 'quiz' && quizzesLoading && (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="w-8 h-8 animate-spin text-primary" />
           </div>
         )}
 

@@ -38,7 +38,10 @@ export const EventCard = ({ event, onToggleActive, onView, onEdit, onDelete }: E
               </CardDescription>
             )}
           </div>
-          <Badge variant={event.is_active ? "default" : "secondary"} className="ml-4">
+          <Badge
+            variant={event.is_active ? "default" : "secondary"}
+            className={event.is_active ? "ml-4" : "ml-4 text-muted-foreground"}
+          >
             {event.is_active ? '進行中' : '未啟動'}
           </Badge>
         </div>
