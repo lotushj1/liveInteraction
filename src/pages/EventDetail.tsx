@@ -7,7 +7,8 @@ import { Badge } from '@/components/ui/badge';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { QuizEditor } from '@/components/quiz/QuizEditor';
 import { EmbedDialog } from '@/components/EmbedDialog';
-import { ArrowLeft, Loader2, Calendar, Users, Copy, CheckCircle2, Code2 } from 'lucide-react';
+import { JoinCodeCardDialog } from '@/components/JoinCodeCardDialog';
+import { ArrowLeft, Loader2, Calendar, Users, Copy, CheckCircle2, Code2, Download } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { zhTW } from 'date-fns/locale';
 import { useState, useEffect } from 'react';
@@ -23,6 +24,7 @@ export default function EventDetail() {
   const { toast } = useToast();
   const [copied, setCopied] = useState(false);
   const [embedDialogOpen, setEmbedDialogOpen] = useState(false);
+  const [joinCodeCardDialogOpen, setJoinCodeCardDialogOpen] = useState(false);
 
   // Auto-create quiz for quiz-type events if none exists
   useEffect(() => {
@@ -159,19 +161,36 @@ export default function EventDetail() {
                 )}
               </div>
 
-              {/* Embed Button */}
-              <div className="pt-2 border-t">
-                <Button
-                  variant="outline"
-                  onClick={() => setEmbedDialogOpen(true)}
-                  className="w-full sm:w-auto"
-                >
-                  <Code2 className="w-4 h-4 mr-2" />
-                  嵌入到簡報
-                </Button>
-                <p className="text-xs text-muted-foreground mt-2">
-                  取得嵌入代碼，將此活動嵌入到 PowerPoint、Google Slides 或任何簡報中
-                </p>
+              {/* 簡報相關功能 */}
+              <div className="pt-2 border-t space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <Button
+                      variant="outline"
+                      onClick={() => setJoinCodeCardDialogOpen(true)}
+                      className="w-full"
+                    >
+                      <Download className="w-4 h-4 mr-2" />
+                      下載加入碼圖片
+                    </Button>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      下載包含 QR Code 的加入碼圖片，可直接插入簡報
+                    </p>
+                  </div>
+                  <div>
+                    <Button
+                      variant="outline"
+                      onClick={() => setEmbedDialogOpen(true)}
+                      className="w-full"
+                    >
+                      <Code2 className="w-4 h-4 mr-2" />
+                      嵌入到簡報
+                    </Button>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      取得嵌入代碼，將活動嵌入到簡報中互動使用
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
           </CardContent>
@@ -216,6 +235,16 @@ export default function EventDetail() {
         <EmbedDialog
           open={embedDialogOpen}
           onOpenChange={setEmbedDialogOpen}
+          joinCode={event.join_code}
+          eventTitle={event.title}
+        />
+      )}
+
+      {/* Join Code Card Dialog */}
+      {event && (
+        <JoinCodeCardDialog
+          open={joinCodeCardDialogOpen}
+          onOpenChange={setJoinCodeCardDialogOpen}
           joinCode={event.join_code}
           eventTitle={event.title}
         />
