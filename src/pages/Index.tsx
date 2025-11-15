@@ -64,11 +64,11 @@ const Index = () => {
 
           <div className="grid gap-8 md:grid-cols-3">
             {/* Quiz Feature */}
-            <Card className="glass-card group relative overflow-hidden border-2 p-8 transition-all hover:border-primary hover:shadow-primary">
-              <div className="absolute right-0 top-0 h-32 w-32 translate-x-8 -translate-y-8 rounded-full bg-primary/10 blur-3xl transition-all group-hover:scale-150" />
+            <Card className="glass-card group relative overflow-hidden border-2 p-8 transition-all hover:border-yellow-500 hover:shadow-[0_10px_40px_-10px_rgb(234_179_8_/_0.4)]">
+              <div className="absolute right-0 top-0 h-32 w-32 translate-x-8 -translate-y-8 rounded-full bg-yellow-500/10 blur-3xl transition-all group-hover:scale-150" />
               <div className="relative">
-                <div className="mb-6 inline-flex h-16 w-16 items-center justify-center rounded-2xl glass border-2 border-primary/50 text-primary shadow-primary">
-                  <Zap className="h-8 w-8" />
+                <div className="mb-6 inline-flex h-16 w-16 items-center justify-center rounded-2xl glass border-2 border-yellow-500/50 text-yellow-500 shadow-[0_10px_40px_-10px_rgb(234_179_8_/_0.3)]">
+                  <Zap className="h-8 w-8 fill-yellow-500" />
                 </div>
                 <h3 className="mb-3 text-2xl font-bold">問答競賽</h3>
                 <p className="text-muted-foreground">
