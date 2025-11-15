@@ -2,11 +2,21 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Plus, Pencil, Check, X, Sparkles } from 'lucide-react';
+import { Plus, Pencil, Check, X, Sparkles, Film } from 'lucide-react';
 import { QuestionCard } from './QuestionCard';
 import { QuestionEditor } from './QuestionEditor';
+import { ContentSlideEditor } from './ContentSlideEditor';
 import { AIQuestionGenerator } from './AIQuestionGenerator';
-import { useQuizQuestions, useCreateQuestion, useUpdateQuestion, useDeleteQuestion } from '@/hooks/useQuiz';
+import {
+  useQuizQuestions,
+  useCreateQuestion,
+  useUpdateQuestion,
+  useDeleteQuestion,
+  useContentSlides,
+  useCreateContentSlide,
+  useUpdateContentSlide,
+  useDeleteContentSlide,
+} from '@/hooks/useQuiz';
 import { useMembership } from '@/contexts/MembershipContext';
 import {
   AlertDialog,
@@ -31,16 +41,23 @@ export function QuizEditor({ quiz, onUpdateTitle }: QuizEditorProps) {
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [editedTitle, setEditedTitle] = useState(quiz.title);
   const [editorOpen, setEditorOpen] = useState(false);
+  const [slideEditorOpen, setSlideEditorOpen] = useState(false);
   const [aiGeneratorOpen, setAiGeneratorOpen] = useState(false);
   const [editingQuestion, setEditingQuestion] = useState<any>(null);
+  const [editingSlide, setEditingSlide] = useState<any>(null);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [questionToDelete, setQuestionToDelete] = useState<string | null>(null);
+  const [slideToDelete, setSlideToDelete] = useState<string | null>(null);
 
   const { data: questions = [], isLoading } = useQuizQuestions(quiz.id);
+  const { data: slides = [] } = useContentSlides(quiz.id);
   const { isPremium } = useMembership();
   const createQuestion = useCreateQuestion();
   const updateQuestion = useUpdateQuestion();
   const deleteQuestion = useDeleteQuestion();
+  const createSlide = useCreateContentSlide();
+  const updateSlide = useUpdateContentSlide();
+  const deleteSlide = useDeleteContentSlide();
 
   const handleSaveTitle = () => {
     if (editedTitle.trim() && editedTitle !== quiz.title) {
@@ -103,6 +120,47 @@ export function QuizEditor({ quiz, onUpdateTitle }: QuizEditorProps) {
     });
   };
 
+  // Content Slide handlers
+  const handleAddSlide = () => {
+    setEditingSlide(null);
+    setSlideEditorOpen(true);
+  };
+
+  const handleEditSlide = (slide: any) => {
+    setEditingSlide(slide);
+    setSlideEditorOpen(true);
+  };
+
+  const handleSaveSlide = (slideData: any) => {
+    if (editingSlide) {
+      updateSlide.mutate({
+        id: editingSlide.id,
+        ...slideData,
+      });
+    } else {
+      createSlide.mutate({
+        quiz_id: quiz.id,
+        content_order: questions.length + slides.length,
+        ...slideData,
+      });
+    }
+  };
+
+  const handleDeleteSlideClick = (slideId: string) => {
+    setSlideToDelete(slideId);
+    setDeleteConfirmOpen(true);
+  };
+
+  const handleConfirmSlideDelete = () => {
+    if (slideToDelete) {
+      deleteSlide.mutate({ id: slideToDelete, quizId: quiz.id });
+    }
+    setDeleteConfirmOpen(false);
+    setSlideToDelete(null);
+  };
+
+  const totalItems = questions.length + slides.length;
+
   return (
     <>
       <Card>
@@ -137,13 +195,21 @@ export function QuizEditor({ quiz, onUpdateTitle }: QuizEditorProps) {
         <CardContent className="space-y-4">
           {isLoading ? (
             <div className="text-center py-8 text-muted-foreground">載入中...</div>
-          ) : questions.length === 0 ? (
+          ) : totalItems === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
-              <p className="mb-4">還沒有題目</p>
+              <p className="mb-4">還沒有題目或內容</p>
               <div className="flex flex-col sm:flex-row gap-2 justify-center">
                 <Button onClick={handleAddQuestion}>
                   <Plus className="w-4 h-4 mr-2" />
                   新增第一題
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={handleAddSlide}
+                  className="gap-2"
+                >
+                  <Film className="w-4 h-4" />
+                  新增內容穿插
                 </Button>
                 <Button
                   variant="outline"
@@ -169,15 +235,23 @@ export function QuizEditor({ quiz, onUpdateTitle }: QuizEditorProps) {
                 ))}
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-2">
-                <Button onClick={handleAddQuestion} className="flex-1">
-                  <Plus className="w-4 h-4 mr-2" />
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                <Button onClick={handleAddQuestion} className="gap-2">
+                  <Plus className="w-4 h-4" />
                   新增題目
                 </Button>
                 <Button
                   variant="outline"
+                  onClick={handleAddSlide}
+                  className="gap-2"
+                >
+                  <Film className="w-4 h-4" />
+                  新增內容穿插
+                </Button>
+                <Button
+                  variant="outline"
                   onClick={() => setAiGeneratorOpen(true)}
-                  className="flex-1 gap-2"
+                  className="gap-2"
                 >
                   <Sparkles className="w-4 h-4" />
                   AI 生成題目
@@ -196,6 +270,13 @@ export function QuizEditor({ quiz, onUpdateTitle }: QuizEditorProps) {
         onSave={handleSaveQuestion}
       />
 
+      <ContentSlideEditor
+        open={slideEditorOpen}
+        onOpenChange={setSlideEditorOpen}
+        slide={editingSlide}
+        onSave={handleSaveSlide}
+      />
+
       <AIQuestionGenerator
         open={aiGeneratorOpen}
         onOpenChange={setAiGeneratorOpen}
@@ -205,14 +286,18 @@ export function QuizEditor({ quiz, onUpdateTitle }: QuizEditorProps) {
       <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>確定要刪除這個題目嗎？</AlertDialogTitle>
+            <AlertDialogTitle>
+              {questionToDelete ? '確定要刪除這個題目嗎？' : '確定要刪除這個內容嗎？'}
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              此操作無法復原，題目將永久刪除。
+              此操作無法復原，{questionToDelete ? '題目' : '內容穿插'}將永久刪除。
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>取消</AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirmDelete}>刪除</AlertDialogAction>
+            <AlertDialogAction onClick={questionToDelete ? handleConfirmDelete : handleConfirmSlideDelete}>
+              刪除
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

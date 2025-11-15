@@ -14,6 +14,7 @@ import { Slider } from '@/components/ui/slider';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ImageUpload } from '@/components/ui/image-upload';
 import { Trash2, Plus, AlertCircle, Sparkles, Loader2, Crown } from 'lucide-react';
 import { useMembership } from '@/contexts/MembershipContext';
 import { useToast } from '@/hooks/use-toast';
@@ -23,6 +24,7 @@ interface QuestionData {
   options: Array<{ id: number; text: string; isCorrect: boolean }>;
   time_limit: number;
   points: number;
+  image_url?: string;
 }
 
 interface QuestionEditorProps {
@@ -38,6 +40,7 @@ export function QuestionEditor({ open, onOpenChange, question, onSave }: Questio
 
   const [mode, setMode] = useState<'manual' | 'ai'>('manual');
   const [questionText, setQuestionText] = useState('');
+  const [imageUrl, setImageUrl] = useState('');
   const [options, setOptions] = useState<Array<{ id: number; text: string; isCorrect: boolean }>>([
     { id: 0, text: '', isCorrect: false },
     { id: 1, text: '', isCorrect: false },
@@ -53,6 +56,7 @@ export function QuestionEditor({ open, onOpenChange, question, onSave }: Questio
   useEffect(() => {
     if (question) {
       setQuestionText(question.question_text);
+      setImageUrl(question.image_url || '');
       setOptions(question.options);
       setTimeLimit(question.time_limit);
       setPoints(question.points);
@@ -64,6 +68,7 @@ export function QuestionEditor({ open, onOpenChange, question, onSave }: Questio
   const resetForm = () => {
     setMode('manual');
     setQuestionText('');
+    setImageUrl('');
     setOptions([
       { id: 0, text: '', isCorrect: false },
       { id: 1, text: '', isCorrect: false },
@@ -246,6 +251,7 @@ ${aiContext}
       options,
       time_limit: timeLimit,
       points,
+      image_url: imageUrl || undefined,
     });
 
     resetForm();
@@ -338,6 +344,15 @@ ${aiContext}
               value={questionText}
               onChange={(e) => setQuestionText(e.target.value)}
               placeholder="輸入題目內容..."
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label>輔助圖片（選填）</Label>
+            <ImageUpload
+              value={imageUrl}
+              onChange={setImageUrl}
+              onRemove={() => setImageUrl('')}
             />
           </div>
 
