@@ -69,12 +69,12 @@ export const Footer = () => {
             <h3 className="mb-4 text-sm font-semibold">關於</h3>
             <ul className="space-y-3 text-sm">
               <li>
-                <a
-                  href="#about"
+                <button
+                  onClick={() => navigate('/about')}
                   className="text-muted-foreground transition-colors hover:text-primary"
                 >
                   關於我們
-                </a>
+                </button>
               </li>
               <li>
                 <a
