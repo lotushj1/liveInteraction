@@ -15,6 +15,7 @@ const loginSchema = z.object({
   email: z.string().email('請輸入有效的電子郵件').max(VALIDATION.EMAIL_MAX_LENGTH),
   password: z.string().min(VALIDATION.PASSWORD_MIN_LENGTH, '密碼至少需要 6 個字元')
 });
+
 const signupSchema = loginSchema.extend({
   displayName: z.string().min(1, '請輸入您的名稱').max(VALIDATION.DISPLAY_NAME_MAX_LENGTH),
   confirmPassword: z.string()
@@ -22,11 +23,13 @@ const signupSchema = loginSchema.extend({
   message: '密碼不一致',
   path: ['confirmPassword']
 });
+
 export default function Auth() {
   const navigate = useNavigate();
   const { signIn, signUp, user, isLoading: authLoading, isHost } = useAuth();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const [forceShowForm, setForceShowForm] = useState(false);
   const [loginForm, setLoginForm] = useState({
     email: '',
     password: ''
@@ -46,8 +49,22 @@ export default function Auth() {
     }
   }, [user, authLoading, isHost, navigate]);
 
-  // 在載入時顯示載入畫面
-  if (authLoading) {
+  // 添加超時保護，避免無限載入
+  useEffect(() => {
+    if (authLoading) {
+      const timer = setTimeout(() => {
+        console.warn('Auth loading timeout - forcing display of auth form');
+        setForceShowForm(true);
+      }, 3000); // 3秒後強制顯示表單
+
+      return () => clearTimeout(timer);
+    } else {
+      setForceShowForm(false);
+    }
+  }, [authLoading]);
+
+  // 在載入時顯示載入畫面（添加最大載入時間限制）
+  if (authLoading && !forceShowForm) {
     return (
       <div className="min-h-screen flex items-center justify-center gradient-hero">
         <div className="text-center">
@@ -59,7 +76,7 @@ export default function Auth() {
   }
 
   // 如果已登入且角色已確認，顯示重導向畫面
-  if (user && isHost) {
+  if (user && isHost && !authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center gradient-hero">
         <div className="text-center">
@@ -69,20 +86,24 @@ export default function Auth() {
       </div>
     );
   }
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors({});
+
     try {
       const validated = loginSchema.parse(loginForm);
       setIsLoading(true);
-      const {
-        error
-      } = await signIn(validated.email, validated.password);
+
+      const { error } = await signIn(validated.email, validated.password);
+
       if (error) {
         toast({
           title: "登入失敗",
-          description: error.message === 'Invalid login credentials' ? '電子郵件或密碼錯誤' : error.message,
-          variant: "destructive"
+          description: error.message === 'Invalid login credentials'
+            ? '電子郵件或密碼錯誤'
+            : error.message,
+          variant: "destructive",
         });
       } else {
         navigate('/dashboard');
@@ -90,7 +111,7 @@ export default function Auth() {
     } catch (err) {
       if (err instanceof z.ZodError) {
         const fieldErrors: Record<string, string> = {};
-        err.errors.forEach(error => {
+        err.errors.forEach((error) => {
           if (error.path[0]) {
             fieldErrors[error.path[0] as string] = error.message;
           }
@@ -101,20 +122,24 @@ export default function Auth() {
       setIsLoading(false);
     }
   };
+
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors({});
+
     try {
       const validated = signupSchema.parse(signupForm);
       setIsLoading(true);
-      const {
-        error
-      } = await signUp(validated.email, validated.password, validated.displayName);
+
+      const { error } = await signUp(validated.email, validated.password, validated.displayName);
+
       if (error) {
         toast({
           title: "註冊失敗",
-          description: error.message === 'User already registered' ? '此電子郵件已被註冊' : error.message,
-          variant: "destructive"
+          description: error.message === 'User already registered'
+            ? '此電子郵件已被註冊'
+            : error.message,
+          variant: "destructive",
         });
       } else {
         navigate('/dashboard');
@@ -122,7 +147,7 @@ export default function Auth() {
     } catch (err) {
       if (err instanceof z.ZodError) {
         const fieldErrors: Record<string, string> = {};
-        err.errors.forEach(error => {
+        err.errors.forEach((error) => {
           if (error.path[0]) {
             fieldErrors[error.path[0] as string] = error.message;
           }
@@ -133,10 +158,15 @@ export default function Auth() {
       setIsLoading(false);
     }
   };
-  return <div className="min-h-screen flex items-center justify-center p-4 gradient-hero">
+
+  return (
+    <div className="min-h-screen flex items-center justify-center p-4 gradient-hero">
       <div className="w-full max-w-md animate-fade-in">
         <div className="text-center mb-8">
-          
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-accent text-white mb-4 shadow-primary">
+            <Zap className="h-8 w-8" />
+          </div>
+          <h1 className="text-3xl font-bold mb-2">LivePulse</h1>
           <p className="text-muted-foreground">即時互動平台 - 主持人登入</p>
         </div>
 
@@ -145,7 +175,7 @@ export default function Auth() {
             <TabsTrigger value="login">登入</TabsTrigger>
             <TabsTrigger value="signup">註冊</TabsTrigger>
           </TabsList>
-          
+
           <TabsContent value="login">
             <Card>
               <CardHeader>
@@ -156,22 +186,29 @@ export default function Auth() {
                 <form onSubmit={handleLogin} className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="login-email">電子郵件</Label>
-                    <Input id="login-email" type="email" placeholder="your@email.com" value={loginForm.email} onChange={e => setLoginForm({
-                    ...loginForm,
-                    email: e.target.value
-                  })} disabled={isLoading} />
+                    <Input
+                      id="login-email"
+                      type="email"
+                      placeholder="your@email.com"
+                      value={loginForm.email}
+                      onChange={(e) => setLoginForm({ ...loginForm, email: e.target.value })}
+                      disabled={isLoading}
+                    />
                     {errors.email && <p className="text-sm text-destructive">{errors.email}</p>}
                   </div>
-                  
+
                   <div className="space-y-2">
                     <Label htmlFor="login-password">密碼</Label>
-                    <Input id="login-password" type="password" value={loginForm.password} onChange={e => setLoginForm({
-                    ...loginForm,
-                    password: e.target.value
-                  })} disabled={isLoading} />
+                    <Input
+                      id="login-password"
+                      type="password"
+                      value={loginForm.password}
+                      onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
+                      disabled={isLoading}
+                    />
                     {errors.password && <p className="text-sm text-destructive">{errors.password}</p>}
                   </div>
-                  
+
                   <Button type="submit" className="w-full" variant="gradient" disabled={isLoading}>
                     {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     登入
@@ -180,7 +217,7 @@ export default function Auth() {
               </CardContent>
             </Card>
           </TabsContent>
-          
+
           <TabsContent value="signup">
             <Card>
               <CardHeader>
@@ -191,40 +228,55 @@ export default function Auth() {
                 <form onSubmit={handleSignup} className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="signup-name">顯示名稱</Label>
-                    <Input id="signup-name" type="text" placeholder="您的名稱" value={signupForm.displayName} onChange={e => setSignupForm({
-                    ...signupForm,
-                    displayName: e.target.value
-                  })} disabled={isLoading} />
+                    <Input
+                      id="signup-name"
+                      type="text"
+                      placeholder="您的名稱"
+                      value={signupForm.displayName}
+                      onChange={(e) => setSignupForm({ ...signupForm, displayName: e.target.value })}
+                      disabled={isLoading}
+                    />
                     {errors.displayName && <p className="text-sm text-destructive">{errors.displayName}</p>}
                   </div>
-                  
+
                   <div className="space-y-2">
                     <Label htmlFor="signup-email">電子郵件</Label>
-                    <Input id="signup-email" type="email" placeholder="your@email.com" value={signupForm.email} onChange={e => setSignupForm({
-                    ...signupForm,
-                    email: e.target.value
-                  })} disabled={isLoading} />
+                    <Input
+                      id="signup-email"
+                      type="email"
+                      placeholder="your@email.com"
+                      value={signupForm.email}
+                      onChange={(e) => setSignupForm({ ...signupForm, email: e.target.value })}
+                      disabled={isLoading}
+                    />
                     {errors.email && <p className="text-sm text-destructive">{errors.email}</p>}
                   </div>
-                  
+
                   <div className="space-y-2">
                     <Label htmlFor="signup-password">密碼</Label>
-                    <Input id="signup-password" type="password" placeholder="至少 6 個字元" value={signupForm.password} onChange={e => setSignupForm({
-                    ...signupForm,
-                    password: e.target.value
-                  })} disabled={isLoading} />
+                    <Input
+                      id="signup-password"
+                      type="password"
+                      placeholder="至少 6 個字元"
+                      value={signupForm.password}
+                      onChange={(e) => setSignupForm({ ...signupForm, password: e.target.value })}
+                      disabled={isLoading}
+                    />
                     {errors.password && <p className="text-sm text-destructive">{errors.password}</p>}
                   </div>
-                  
+
                   <div className="space-y-2">
                     <Label htmlFor="signup-confirm">確認密碼</Label>
-                    <Input id="signup-confirm" type="password" value={signupForm.confirmPassword} onChange={e => setSignupForm({
-                    ...signupForm,
-                    confirmPassword: e.target.value
-                  })} disabled={isLoading} />
+                    <Input
+                      id="signup-confirm"
+                      type="password"
+                      value={signupForm.confirmPassword}
+                      onChange={(e) => setSignupForm({ ...signupForm, confirmPassword: e.target.value })}
+                      disabled={isLoading}
+                    />
                     {errors.confirmPassword && <p className="text-sm text-destructive">{errors.confirmPassword}</p>}
                   </div>
-                  
+
                   <Button type="submit" className="w-full" variant="gradient" disabled={isLoading}>
                     {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     註冊
@@ -234,12 +286,13 @@ export default function Auth() {
             </Card>
           </TabsContent>
         </Tabs>
-        
+
         <div className="mt-6 text-center">
           <Button variant="ghost" onClick={() => navigate('/')}>
             返回首頁
           </Button>
         </div>
       </div>
-    </div>;
+    </div>
+  );
 }
