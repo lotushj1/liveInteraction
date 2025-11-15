@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import { useParticipantContext } from '@/contexts/ParticipantContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Users, Clock, LogOut } from 'lucide-react';
@@ -83,15 +84,18 @@ const Lobby = () => {
           <h1 className="text-2xl font-bold">{event.title}</h1>
           <p className="text-muted-foreground mt-1">歡迎，{participant.nickname}！</p>
         </div>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={leaveEvent}
-          className="gap-2"
-        >
-          <LogOut className="w-4 h-4" />
-          離開
-        </Button>
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={leaveEvent}
+            className="gap-2"
+          >
+            <LogOut className="w-4 h-4" />
+            離開
+          </Button>
+        </div>
       </header>
 
       {/* Main Content */}
