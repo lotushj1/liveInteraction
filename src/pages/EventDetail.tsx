@@ -6,7 +6,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { QuizEditor } from '@/components/quiz/QuizEditor';
-import { ArrowLeft, Loader2, Calendar, Users, Copy, CheckCircle2 } from 'lucide-react';
+import { EmbedDialog } from '@/components/EmbedDialog';
+import { ArrowLeft, Loader2, Calendar, Users, Copy, CheckCircle2, Code2 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { zhTW } from 'date-fns/locale';
 import { useState, useEffect } from 'react';
@@ -21,6 +22,7 @@ export default function EventDetail() {
   const updateQuiz = useUpdateQuiz();
   const { toast } = useToast();
   const [copied, setCopied] = useState(false);
+  const [embedDialogOpen, setEmbedDialogOpen] = useState(false);
 
   // Auto-create quiz for quiz-type events if none exists
   useEffect(() => {
@@ -121,39 +123,56 @@ export default function EventDetail() {
           </CardHeader>
 
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Calendar className="w-4 h-4" />
-                <span>建立於 {formatDistanceToNow(new Date(event.created_at), { addSuffix: true, locale: zhTW })}</span>
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Calendar className="w-4 h-4" />
+                  <span>建立於 {formatDistanceToNow(new Date(event.created_at), { addSuffix: true, locale: zhTW })}</span>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <Users className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-sm text-muted-foreground mr-2">加入碼：</span>
+                  <div className="glass px-3 py-1 rounded-lg border border-primary/30">
+                    <span className="text-xl font-bold text-primary tracking-wide">
+                      {event.join_code}
+                    </span>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={handleCopyJoinCode}
+                    className="ml-2"
+                  >
+                    {copied ? (
+                      <CheckCircle2 className="w-4 h-4 text-green-500" />
+                    ) : (
+                      <Copy className="w-4 h-4" />
+                    )}
+                  </Button>
+                </div>
+
+                {event.qna_enabled && (
+                  <div className="col-span-full">
+                    <Badge variant="outline">Q&A 功能已開啟</Badge>
+                  </div>
+                )}
               </div>
 
-              <div className="flex items-center gap-2">
-                <Users className="w-4 h-4 text-muted-foreground" />
-                <span className="text-sm text-muted-foreground mr-2">加入碼：</span>
-                <div className="glass px-3 py-1 rounded-lg border border-primary/30">
-                  <span className="text-xl font-bold text-primary tracking-wide">
-                    {event.join_code}
-                  </span>
-                </div>
+              {/* Embed Button */}
+              <div className="pt-2 border-t">
                 <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={handleCopyJoinCode}
-                  className="ml-2"
+                  variant="outline"
+                  onClick={() => setEmbedDialogOpen(true)}
+                  className="w-full sm:w-auto"
                 >
-                  {copied ? (
-                    <CheckCircle2 className="w-4 h-4 text-green-500" />
-                  ) : (
-                    <Copy className="w-4 h-4" />
-                  )}
+                  <Code2 className="w-4 h-4 mr-2" />
+                  嵌入到簡報
                 </Button>
+                <p className="text-xs text-muted-foreground mt-2">
+                  取得嵌入代碼，將此活動嵌入到 PowerPoint、Google Slides 或任何簡報中
+                </p>
               </div>
-
-              {event.qna_enabled && (
-                <div className="col-span-full">
-                  <Badge variant="outline">Q&A 功能已開啟</Badge>
-                </div>
-              )}
             </div>
           </CardContent>
         </Card>
@@ -191,6 +210,16 @@ export default function EventDetail() {
           </Card>
         )}
       </main>
+
+      {/* Embed Dialog */}
+      {event && (
+        <EmbedDialog
+          open={embedDialogOpen}
+          onOpenChange={setEmbedDialogOpen}
+          joinCode={event.join_code}
+          eventTitle={event.title}
+        />
+      )}
     </div>
   );
 }
