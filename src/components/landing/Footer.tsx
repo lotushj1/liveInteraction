@@ -108,20 +108,20 @@ export const Footer = () => {
             <h3 className="mb-4 text-sm font-semibold">法律條款</h3>
             <ul className="space-y-3 text-sm mb-6">
               <li>
-                <a
-                  href="#privacy"
+                <button
+                  onClick={() => navigate('/privacy')}
                   className="text-muted-foreground transition-colors hover:text-primary"
                 >
                   隱私權政策
-                </a>
+                </button>
               </li>
               <li>
-                <a
-                  href="#terms"
+                <button
+                  onClick={() => navigate('/terms')}
                   className="text-muted-foreground transition-colors hover:text-primary"
                 >
                   服務條款
-                </a>
+                </button>
               </li>
             </ul>
 
@@ -162,15 +162,24 @@ export const Footer = () => {
         <div className="flex flex-col items-center justify-between gap-4 text-sm text-muted-foreground md:flex-row">
           <p>© {currentYear} LivePulse. All rights reserved.</p>
           <div className="flex gap-6">
-            <a href="#privacy" className="transition-colors hover:text-primary">
+            <button
+              onClick={() => navigate('/privacy')}
+              className="transition-colors hover:text-primary"
+            >
               隱私權
-            </a>
-            <a href="#terms" className="transition-colors hover:text-primary">
+            </button>
+            <button
+              onClick={() => navigate('/terms')}
+              className="transition-colors hover:text-primary"
+            >
               條款
-            </a>
-            <a href="#cookies" className="transition-colors hover:text-primary">
+            </button>
+            <button
+              onClick={() => navigate('/privacy#cookies')}
+              className="transition-colors hover:text-primary"
+            >
               Cookie 設定
-            </a>
+            </button>
           </div>
         </div>
       </div>
