@@ -43,20 +43,11 @@ export function AIQuestionGenerator({ open, onOpenChange, onGenerate }: AIQuesti
   const [generatedQuestions, setGeneratedQuestions] = useState<QuestionData[]>([]);
 
   const handleGenerate = async () => {
-    if (!isPremium) {
-      toast({
-        title: '需要升級會員',
-        description: 'AI 生成問題功能僅限付費會員使用',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    const apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY;
+    const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
     if (!apiKey) {
       toast({
         title: '設定錯誤',
-        description: '請設定 VITE_ANTHROPIC_API_KEY 環境變數',
+        description: '請設定 VITE_GEMINI_API_KEY 環境變數',
         variant: 'destructive',
       });
       return;
@@ -122,31 +113,37 @@ ${pastedText}
   ]
 }`;
 
-      const response = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': apiKey,
-          'anthropic-version': '2023-06-01',
-        },
-        body: JSON.stringify({
-          model: 'claude-3-5-sonnet-20241022',
-          max_tokens: 4096,
-          messages: [
-            {
-              role: 'user',
-              content: prompt,
+      const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            contents: [
+              {
+                parts: [
+                  {
+                    text: prompt,
+                  },
+                ],
+              },
+            ],
+            generationConfig: {
+              temperature: 0.7,
+              maxOutputTokens: 4096,
             },
-          ],
-        }),
-      });
+          }),
+        }
+      );
 
       if (!response.ok) {
         throw new Error(`API 請求失敗: ${response.statusText}`);
       }
 
       const data = await response.json();
-      const content = data.content[0].text;
+      const content = data.candidates[0].content.parts[0].text;
 
       // 解析 JSON，支援 markdown code block 格式
       let jsonText = content;
@@ -205,21 +202,11 @@ ${pastedText}
           <DialogTitle className="flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-primary" />
             AI 問題生成器
-            {isPremium && <Crown className="w-4 h-4 text-yellow-500" />}
           </DialogTitle>
           <DialogDescription>
             使用 AI 快速生成測驗問題，支援主題生成或文本解析
           </DialogDescription>
         </DialogHeader>
-
-        {!isPremium && (
-          <Alert className="border-yellow-500 bg-yellow-50 dark:bg-yellow-950">
-            <Crown className="h-4 w-4 text-yellow-600" />
-            <AlertDescription className="text-yellow-800 dark:text-yellow-200">
-              此功能為付費會員專屬功能。升級會員後即可使用 AI 自動生成測驗問題。
-            </AlertDescription>
-          </Alert>
-        )}
 
         <Tabs value={mode} onValueChange={(v) => setMode(v as 'topic' | 'paste')}>
           <TabsList className="grid w-full grid-cols-2">
@@ -241,7 +228,6 @@ ${pastedText}
                 placeholder="例如：台灣歷史、程式設計、數學..."
                 value={topic}
                 onChange={(e) => setTopic(e.target.value)}
-                disabled={!isPremium}
               />
             </div>
 
@@ -254,7 +240,6 @@ ${pastedText}
                 max={10}
                 value={numQuestions}
                 onChange={(e) => setNumQuestions(Number(e.target.value))}
-                disabled={!isPremium}
               />
             </div>
           </TabsContent>
@@ -268,7 +253,6 @@ ${pastedText}
                 value={pastedText}
                 onChange={(e) => setPastedText(e.target.value)}
                 rows={8}
-                disabled={!isPremium}
               />
               <p className="text-xs text-muted-foreground">
                 AI 會根據您提供的文字內容，自動生成 3-5 道相關的測驗題目
@@ -321,7 +305,7 @@ ${pastedText}
               </Button>
               <Button
                 onClick={handleGenerate}
-                disabled={!canGenerate || isGenerating || !isPremium}
+                disabled={!canGenerate || isGenerating}
                 className="gap-2"
               >
                 {isGenerating ? (
