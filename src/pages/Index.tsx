@@ -2,12 +2,15 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Zap, MessageSquare, BarChart3, Sparkles, ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { Header } from "@/components/landing/Header";
+import { Footer } from "@/components/landing/Footer";
 
 const Index = () => {
   const navigate = useNavigate();
 
   return (
     <div className="min-h-screen">
+      <Header />
       {/* Hero Section */}
       <section className="gradient-hero relative overflow-hidden">
         <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:50px_50px]" />
@@ -48,7 +51,7 @@ const Index = () => {
       </section>
 
       {/* Features Section */}
-      <section className="py-20 lg:py-32">
+      <section id="features" className="py-20 lg:py-32">
         <div className="container mx-auto px-4">
           <div className="mb-16 text-center">
             <h2 className="mb-4 text-3xl font-bold lg:text-5xl">
@@ -106,7 +109,7 @@ const Index = () => {
       </section>
 
       {/* How It Works Section */}
-      <section className="bg-muted/30 py-20 lg:py-32">
+      <section id="how-it-works" className="bg-muted/30 py-20 lg:py-32">
         <div className="container mx-auto px-4">
           <div className="mb-16 text-center">
             <h2 className="mb-4 text-3xl font-bold lg:text-5xl">
@@ -170,6 +173,8 @@ const Index = () => {
           </Card>
         </div>
       </section>
+
+      <Footer />
     </div>
   );
 };
