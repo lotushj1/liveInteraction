@@ -224,7 +224,7 @@ const Index = () => {
                 <CardTitle className="text-2xl">專業版</CardTitle>
                 <CardDescription className="text-base">適合中大型活動與專業使用</CardDescription>
                 <div className="mt-4">
-                  <span className="text-4xl font-bold">NT$ 1,990</span>
+                  <span className="text-4xl font-bold">NT$ 99</span>
                   <span className="text-muted-foreground"> / 月</span>
                 </div>
               </CardHeader>
