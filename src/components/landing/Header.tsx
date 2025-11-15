@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { Zap } from "lucide-react";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export const Header = () => {
   const navigate = useNavigate();
@@ -45,6 +46,7 @@ export const Header = () => {
 
         {/* CTA Buttons */}
         <div className="flex items-center gap-3">
+          <ThemeToggle />
           <Button
             variant="ghost"
             onClick={() => navigate('/join')}

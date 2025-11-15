@@ -150,6 +150,20 @@ All colors MUST be HSL.
     background-attachment: fixed;
   }
 
+  .dark body {
+    background-image:
+      radial-gradient(
+        circle at 20% 50%,
+        hsla(24, 100%, 35%, 0.15) 0%,
+        transparent 50%
+      ),
+      radial-gradient(
+        circle at 80% 80%,
+        hsla(24, 90%, 40%, 0.1) 0%,
+        transparent 50%
+      );
+  }
+
   h1, h2, h3, h4, h5, h6 {
     @apply font-bold tracking-tight;
   }
@@ -201,6 +215,27 @@ All colors MUST be HSL.
     backdrop-filter: blur(12px) saturate(180%);
     -webkit-backdrop-filter: blur(12px) saturate(180%);
     border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  }
+
+  /* 深色模式毛玻璃效果 */
+  .dark .glass {
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .dark .glass-card {
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .dark .glass-strong {
+    background: rgba(0, 0, 0, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+  }
+
+  .dark .glass-header {
+    background: rgba(0, 0, 0, 0.5);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   }
 
   /* 毛玻璃漸變 */
