@@ -49,13 +49,13 @@ export default function Auth() {
     }
   }, [user, authLoading, isHost, navigate]);
 
-  // 添加超時保護，避免無限載入
+  // 添加超時保護，避免無限載入（縮短到 800ms）
   useEffect(() => {
     if (authLoading) {
       const timer = setTimeout(() => {
         console.warn('Auth loading timeout - forcing display of auth form');
         setForceShowForm(true);
-      }, 3000); // 3秒後強制顯示表單
+      }, 800); // 0.8秒後強制顯示表單
 
       return () => clearTimeout(timer);
     } else {
@@ -63,13 +63,13 @@ export default function Auth() {
     }
   }, [authLoading]);
 
-  // 在載入時顯示載入畫面（添加最大載入時間限制）
-  if (authLoading && !forceShowForm) {
+  // 只在確定已登入時才顯示載入畫面，否則直接顯示表單
+  if (authLoading && !forceShowForm && user) {
     return (
       <div className="min-h-screen flex items-center justify-center gradient-hero">
         <div className="text-center">
           <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto mb-4" />
-          <p className="text-muted-foreground">載入中...</p>
+          <p className="text-muted-foreground">檢查登入狀態...</p>
         </div>
       </div>
     );

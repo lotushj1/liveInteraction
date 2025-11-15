@@ -24,39 +24,52 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const { toast } = useToast();
 
   useEffect(() => {
+    let mounted = true;
+
     // 設定 auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        if (!mounted) return;
+
         setSession(session);
         setUser(session?.user ?? null);
 
-        // 檢查角色
+        // 檢查角色（但不阻塞 loading 狀態）
         if (session?.user) {
-          await checkUserRole(session.user.id).catch(err => {
+          checkUserRole(session.user.id).catch(err => {
             logger.error('Failed to check user role:', err);
           });
         } else {
           setIsHost(false);
         }
 
+        // 立即設置 loading 為 false，不等待角色檢查
         setIsLoading(false);
       }
     );
 
-    // 檢查現有 session
+    // 檢查現有 session（優化：立即設置 loading 為 false）
     supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (!mounted) return;
+
       setSession(session);
       setUser(session?.user ?? null);
 
+      // 立即設置為 false，不等待角色檢查完成
+      setIsLoading(false);
+
+      // 背景執行角色檢查
       if (session?.user) {
-        await checkUserRole(session.user.id).catch(err => {
+        checkUserRole(session.user.id).catch(err => {
           logger.error('Failed to check user role on init:', err);
         });
       }
-      setIsLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const checkUserRole = async (userId: string) => {
