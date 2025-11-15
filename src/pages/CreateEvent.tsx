@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useEvents } from '@/hooks/useEvents';
 import { useCreateQuiz, useCreateQuestion } from '@/hooks/useQuiz';
 import { Button } from '@/components/ui/button';
@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { TemplateSelector } from '@/components/TemplateSelector';
+import { Badge } from '@/components/ui/badge';
 import { QuizTemplate } from '@/data/templates';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 import { z } from 'zod';
@@ -23,12 +23,12 @@ const createEventSchema = z.object({
 
 export default function CreateEvent() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { createEvent, isCreating } = useEvents();
   const createQuiz = useCreateQuiz();
   const createQuestion = useCreateQuestion();
 
-  const [step, setStep] = useState<'template' | 'form'>('template');
-  const [selectedTemplate, setSelectedTemplate] = useState<QuizTemplate | null>(null);
+  const selectedTemplate = (location.state as { template?: QuizTemplate })?.template || null;
 
   const [form, setForm] = useState({
     title: '',
@@ -39,21 +39,17 @@ export default function CreateEvent() {
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const handleTemplateSelect = (template: QuizTemplate) => {
-    setSelectedTemplate(template);
-    setForm({
-      title: template.title,
-      description: template.description,
-      event_type: template.event_type,
-      qna_enabled: template.qna_enabled,
-    });
-    setStep('form');
-  };
-
-  const handleSkipTemplate = () => {
-    setSelectedTemplate(null);
-    setStep('form');
-  };
+  // 如果有模版，自動填入資料
+  useEffect(() => {
+    if (selectedTemplate) {
+      setForm({
+        title: selectedTemplate.title,
+        description: selectedTemplate.description,
+        event_type: selectedTemplate.event_type,
+        qna_enabled: selectedTemplate.qna_enabled,
+      });
+    }
+  }, [selectedTemplate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -125,54 +121,45 @@ export default function CreateEvent() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
+      <div className="container mx-auto px-4 py-8 max-w-2xl">
         <Button
           variant="ghost"
-          onClick={() => {
-            if (step === 'form' && !isCreating) {
-              setStep('template');
-            } else {
-              navigate('/dashboard');
-            }
-          }}
+          onClick={() => navigate('/dashboard')}
           className="mb-6"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
-          {step === 'form' ? '返回模版選擇' : '返回儀表板'}
+          返回儀表板
         </Button>
 
-        {step === 'template' ? (
-          <div className="animate-fade-in">
-            <TemplateSelector
-              onSelectTemplate={handleTemplateSelect}
-              onSkip={handleSkipTemplate}
-            />
-          </div>
-        ) : (
-          <>
-            <div className="mb-8 animate-fade-in max-w-2xl mx-auto">
-              <h1 className="text-4xl font-bold mb-2">
-                {selectedTemplate ? '使用模版建立活動' : '建立新活動'}
-              </h1>
-              <p className="text-muted-foreground">
-                {selectedTemplate
-                  ? `使用「${selectedTemplate.title}」模版，您可以修改活動資訊`
-                  : '設定您的互動活動資訊'}
-              </p>
+        <div className="mb-8 animate-fade-in">
+          <h1 className="text-4xl font-bold mb-2">
+            {selectedTemplate ? '使用模版建立活動' : '建立新活動'}
+          </h1>
+          <p className="text-muted-foreground">
+            {selectedTemplate
+              ? `使用「${selectedTemplate.title}」模版，您可以修改活動資訊`
+              : '設定您的互動活動資訊'}
+          </p>
+          {selectedTemplate && (
+            <div className="mt-4">
+              <Badge variant="outline" className="text-base px-3 py-1">
+                {selectedTemplate.icon} {selectedTemplate.category}
+              </Badge>
             </div>
+          )}
+        </div>
 
-            <div className="max-w-2xl mx-auto">
-              <Card className="animate-fade-in shadow-card">
-                <CardHeader>
-                  <CardTitle>活動資訊</CardTitle>
-                  <CardDescription>
-                    {selectedTemplate
-                      ? '模版資訊已自動填入，您可以根據需要進行修改。'
-                      : '輸入活動的基本資訊。建立後系統會自動生成 6 位數的加入碼。'}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <form onSubmit={handleSubmit} className="space-y-6">
+        <Card className="animate-fade-in shadow-card">
+          <CardHeader>
+            <CardTitle>活動資訊</CardTitle>
+            <CardDescription>
+              {selectedTemplate
+                ? '模版資訊已自動填入，您可以根據需要進行修改。'
+                : '輸入活動的基本資訊。建立後系統會自動生成 6 位數的加入碼。'}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-4">
                 <Label>活動類型 *</Label>
                 <RadioGroup
@@ -283,13 +270,10 @@ export default function CreateEvent() {
                   {isCreating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   建立活動
                 </Button>
-                    </div>
-                  </form>
-                </CardContent>
-              </Card>
-            </div>
-          </>
-        )}
+              </div>
+            </form>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

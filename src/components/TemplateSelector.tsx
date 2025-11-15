@@ -8,7 +8,7 @@ import { ChevronRight, Eye } from 'lucide-react';
 
 interface TemplateSelectorProps {
   onSelectTemplate: (template: QuizTemplate) => void;
-  onSkip: () => void;
+  onSkip?: () => void;
 }
 
 export function TemplateSelector({ onSelectTemplate, onSkip }: TemplateSelectorProps) {
@@ -97,11 +97,13 @@ export function TemplateSelector({ onSelectTemplate, onSkip }: TemplateSelectorP
       </div>
 
       {/* Skip Button */}
-      <div className="text-center pt-4">
-        <Button variant="ghost" onClick={onSkip}>
-          跳過，從頭開始建立
-        </Button>
-      </div>
+      {onSkip && (
+        <div className="text-center pt-4">
+          <Button variant="ghost" onClick={onSkip}>
+            跳過，從頭開始建立
+          </Button>
+        </div>
+      )}
 
       {/* Preview Dialog */}
       <Dialog open={!!previewTemplate} onOpenChange={() => setPreviewTemplate(null)}>

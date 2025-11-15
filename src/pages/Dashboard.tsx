@@ -4,6 +4,8 @@ import { useEvents } from '@/hooks/useEvents';
 import { Button } from '@/components/ui/button';
 import { EventCard } from '@/components/EventCard';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { CreateEventDialog } from '@/components/CreateEventDialog';
+import { QuizTemplate } from '@/data/templates';
 import { Plus, LogOut, Loader2, Filter } from 'lucide-react';
 import {
   AlertDialog,
@@ -23,6 +25,7 @@ export default function Dashboard() {
   const { events, isLoading, error, updateEvent, deleteEvent } = useEvents();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
 
   // 篩選狀態
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
@@ -76,6 +79,14 @@ export default function Dashboard() {
     }
   };
 
+  const handleCreateNew = () => {
+    navigate('/dashboard/create-event');
+  };
+
+  const handleSelectTemplate = (template: QuizTemplate) => {
+    navigate('/dashboard/create-event', { state: { template } });
+  };
+
   // Show error state if events failed to load
   if (error) {
     return (
@@ -127,7 +138,7 @@ export default function Dashboard() {
           <Button
             size="lg"
             variant="hero"
-            onClick={() => navigate('/dashboard/create-event')}
+            onClick={() => setCreateDialogOpen(true)}
             className="w-full sm:w-auto"
           >
             <Plus className="w-5 h-5 mr-2" />
@@ -239,7 +250,7 @@ export default function Dashboard() {
               </Button>
               <Button
                 variant="gradient"
-                onClick={() => navigate('/dashboard/create-event')}
+                onClick={() => setCreateDialogOpen(true)}
               >
                 <Plus className="w-4 h-4 mr-2" />
                 建立新活動
@@ -254,7 +265,7 @@ export default function Dashboard() {
             </p>
             <Button
               variant="gradient"
-              onClick={() => navigate('/dashboard/create-event')}
+              onClick={() => setCreateDialogOpen(true)}
             >
               <Plus className="w-4 h-4 mr-2" />
               建立第一個活動
@@ -262,6 +273,14 @@ export default function Dashboard() {
           </div>
         )}
       </main>
+
+      {/* 建立活動對話框 */}
+      <CreateEventDialog
+        open={createDialogOpen}
+        onOpenChange={setCreateDialogOpen}
+        onCreateNew={handleCreateNew}
+        onSelectTemplate={handleSelectTemplate}
+      />
 
       {/* 刪除確認對話框 */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
