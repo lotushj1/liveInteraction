@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import { useParticipant } from '@/hooks/useParticipant';
 import { ArrowLeft, Users } from 'lucide-react';
 import { z } from 'zod';
@@ -72,11 +73,12 @@ const Join = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 flex flex-col">
       {/* Header */}
-      <header className="p-4">
+      <header className="p-4 flex justify-between items-center">
         <Link to="/" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
           <ArrowLeft className="w-4 h-4" />
           <span>返回首頁</span>
         </Link>
+        <ThemeToggle />
       </header>
 
       {/* Main Content */}

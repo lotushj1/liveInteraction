@@ -23,6 +23,19 @@ interface QuizQuestion {
   question_order: number;
   time_limit: number;
   points: number;
+  image_url?: string;
+  created_at: string;
+}
+
+interface ContentSlide {
+  id: string;
+  quiz_id: string;
+  content_order: number;
+  title?: string;
+  description?: string;
+  image_url?: string;
+  youtube_url?: string;
+  duration: number;
   created_at: string;
 }
 
@@ -255,6 +268,96 @@ export function useReorderQuestions() {
         description: error.message,
         variant: 'destructive'
       });
+    },
+  });
+}
+
+// Content Slides Hooks
+export function useContentSlides(quizId: string | null) {
+  return useQuery({
+    queryKey: ['content-slides', quizId],
+    queryFn: async () => {
+      if (!quizId) return [];
+      const { data, error } = await supabase
+        .from('quiz_content_slides')
+        .select('*')
+        .eq('quiz_id', quizId)
+        .order('content_order', { ascending: true });
+
+      if (error) throw error;
+      return data as ContentSlide[];
+    },
+    enabled: !!quizId,
+  });
+}
+
+export function useCreateContentSlide() {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (slide: Omit<ContentSlide, 'id' | 'created_at'>) => {
+      const { data, error } = await supabase
+        .from('quiz_content_slides')
+        .insert(slide)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['content-slides', data.quiz_id] });
+      toast({ title: '內容穿插已新增' });
+    },
+    onError: () => {
+      toast({ title: '新增內容穿插失敗', variant: 'destructive' });
+    },
+  });
+}
+
+export function useUpdateContentSlide() {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, ...updates }: Partial<ContentSlide> & { id: string }) => {
+      const { data, error } = await supabase
+        .from('quiz_content_slides')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['content-slides', data.quiz_id] });
+      toast({ title: '內容穿插已更新' });
+    },
+    onError: () => {
+      toast({ title: '更新內容穿插失敗', variant: 'destructive' });
+    },
+  });
+}
+
+export function useDeleteContentSlide() {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, quizId }: { id: string; quizId: string }) => {
+      const { error } = await supabase.from('quiz_content_slides').delete().eq('id', id);
+      if (error) throw error;
+      return { id, quizId };
+    },
+    onSuccess: (variables) => {
+      queryClient.invalidateQueries({ queryKey: ['content-slides', variables.quizId] });
+      toast({ title: '內容穿插已刪除' });
+    },
+    onError: () => {
+      toast({ title: '刪除內容穿插失敗', variant: 'destructive' });
     },
   });
 }
