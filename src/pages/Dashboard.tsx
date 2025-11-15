@@ -20,9 +20,19 @@ import { useState } from 'react';
 export default function Dashboard() {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
-  const { events, isLoading, updateEvent, deleteEvent } = useEvents();
+  const { events, isLoading, error, updateEvent, deleteEvent } = useEvents();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
+
+  // Add error handling
+  if (error) {
+    console.error('Dashboard error loading events:', error);
+  }
+
+  // Add user check
+  if (!user) {
+    console.error('Dashboard: No user found');
+  }
 
   const handleToggleActive = (id: string, isActive: boolean) => {
     updateEvent({
@@ -48,6 +58,19 @@ export default function Dashboard() {
     }
   };
 
+  // Show error state if events failed to load
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-background to-muted/20 flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold mb-4 text-foreground">載入活動時發生錯誤</h2>
+          <p className="text-muted-foreground mb-4">請重新整理頁面或稍後再試</p>
+          <Button onClick={() => window.location.reload()}>重新整理</Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
       {/* 導覽列 */}
@@ -59,7 +82,7 @@ export default function Dashboard() {
                 LivePulse
               </span>
             </div>
-            
+
             <div className="flex items-center gap-4">
               <div className="text-right">
                 <p className="text-sm font-medium">{user?.email}</p>
