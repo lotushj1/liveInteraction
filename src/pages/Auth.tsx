@@ -27,7 +27,10 @@ export default function Auth() {
   const {
     signIn,
     signUp,
-    user
+    signOut,
+    user,
+    isHost,
+    isLoading: authLoading
   } = useAuth();
   const {
     toast
@@ -45,16 +48,45 @@ export default function Auth() {
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // 如果已登入，重導向到儀表板
+  // 如果已登入且是主持人，重導向到儀表板
   useEffect(() => {
-    if (user) {
+    if (user && isHost && !authLoading) {
       navigate('/dashboard', { replace: true });
     }
-  }, [user, navigate]);
+  }, [user, isHost, authLoading, navigate]);
 
   // 在重導向時顯示載入畫面
-  if (user) {
-    return null;
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  // 如果已登入但不是主持人，顯示錯誤訊息
+  if (user && !isHost) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-background to-muted/20">
+        <Card className="max-w-md">
+          <CardHeader>
+            <CardTitle>無法訪問</CardTitle>
+            <CardDescription>此帳號沒有主持人權限</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-muted-foreground mb-4">
+              您已登入，但此帳號未被授予主持人權限。如需訪問後台，請聯繫管理員。
+            </p>
+            <Button onClick={async () => {
+              await signOut();
+              window.location.reload();
+            }}>
+              登出
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
