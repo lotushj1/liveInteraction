@@ -181,7 +181,7 @@ const Index = () => {
                 <ul className="space-y-3">
                   <li className="flex items-start gap-2">
                     <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                    <span className="text-sm">最多 <strong>50 位</strong>參與者</span>
+                    <span className="text-sm">最多 <strong>500 位</strong>參與者</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
@@ -232,7 +232,7 @@ const Index = () => {
                 <ul className="space-y-3">
                   <li className="flex items-start gap-2">
                     <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                    <span className="text-sm">最多 <strong>500 位</strong>參與者</span>
+                    <span className="text-sm">最多 <strong>2,000 位</strong>參與者</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
