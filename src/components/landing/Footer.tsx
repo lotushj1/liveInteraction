@@ -86,14 +86,6 @@ export const Footer = () => {
               </li>
               <li>
                 <a
-                  href="#careers"
-                  className="text-muted-foreground transition-colors hover:text-primary"
-                >
-                  加入團隊
-                </a>
-              </li>
-              <li>
-                <a
                   href="#contact"
                   className="text-muted-foreground transition-colors hover:text-primary"
                 >
