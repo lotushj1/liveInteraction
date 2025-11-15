@@ -104,7 +104,10 @@ export default function EventDetail() {
                   >
                     {event.event_type === 'quiz' ? '🎯 Quiz' : '💬 Q&A'}
                   </Badge>
-                  <Badge variant={event.is_active ? "default" : "secondary"}>
+                  <Badge
+                    variant={event.is_active ? "default" : "secondary"}
+                    className={event.is_active ? "" : "text-muted-foreground"}
+                  >
                     {event.is_active ? '進行中' : '未啟動'}
                   </Badge>
                 </div>

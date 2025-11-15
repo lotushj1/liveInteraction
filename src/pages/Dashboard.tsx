@@ -4,7 +4,7 @@ import { useEvents } from '@/hooks/useEvents';
 import { Button } from '@/components/ui/button';
 import { EventCard } from '@/components/EventCard';
 import { ThemeToggle } from '@/components/ThemeToggle';
-import { Plus, LogOut, Loader2 } from 'lucide-react';
+import { Plus, LogOut, Loader2, Filter } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,6 +24,10 @@ export default function Dashboard() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
 
+  // 篩選狀態
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
+  const [typeFilter, setTypeFilter] = useState<'all' | 'qna' | 'quiz'>('all');
+
   // Add error handling
   if (error) {
     console.error('Dashboard error loading events:', error);
@@ -33,6 +37,20 @@ export default function Dashboard() {
   if (!user) {
     console.error('Dashboard: No user found');
   }
+
+  // 篩選活動
+  const filteredEvents = events?.filter(event => {
+    const matchesStatus =
+      statusFilter === 'all' ||
+      (statusFilter === 'active' && event.is_active) ||
+      (statusFilter === 'inactive' && !event.is_active);
+
+    const matchesType =
+      typeFilter === 'all' ||
+      event.event_type === typeFilter;
+
+    return matchesStatus && matchesType;
+  });
 
   const handleToggleActive = (id: string, isActive: boolean) => {
     updateEvent({
@@ -105,7 +123,7 @@ export default function Dashboard() {
         </div>
 
         {/* 建立新活動按鈕 */}
-        <div className="mb-8 animate-fade-in">
+        <div className="mb-6 animate-fade-in">
           <Button
             size="lg"
             variant="hero"
@@ -117,14 +135,82 @@ export default function Dashboard() {
           </Button>
         </div>
 
+        {/* 篩選器 */}
+        <div className="mb-6 animate-fade-in">
+          <div className="flex flex-col sm:flex-row gap-4">
+            {/* 狀態篩選 */}
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                <Filter className="w-4 h-4" />
+                <span>活動狀態</span>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  variant={statusFilter === 'all' ? 'default' : 'outline'}
+                  onClick={() => setStatusFilter('all')}
+                >
+                  全部
+                </Button>
+                <Button
+                  size="sm"
+                  variant={statusFilter === 'active' ? 'default' : 'outline'}
+                  onClick={() => setStatusFilter('active')}
+                >
+                  進行中
+                </Button>
+                <Button
+                  size="sm"
+                  variant={statusFilter === 'inactive' ? 'outline' : 'outline'}
+                  onClick={() => setStatusFilter('inactive')}
+                  className={statusFilter === 'inactive' ? 'bg-muted' : ''}
+                >
+                  未啟動
+                </Button>
+              </div>
+            </div>
+
+            {/* 類型篩選 */}
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                <Filter className="w-4 h-4" />
+                <span>活動類型</span>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  variant={typeFilter === 'all' ? 'default' : 'outline'}
+                  onClick={() => setTypeFilter('all')}
+                >
+                  全部
+                </Button>
+                <Button
+                  size="sm"
+                  variant={typeFilter === 'quiz' ? 'default' : 'outline'}
+                  onClick={() => setTypeFilter('quiz')}
+                >
+                  🎯 Quiz
+                </Button>
+                <Button
+                  size="sm"
+                  variant={typeFilter === 'qna' ? 'default' : 'outline'}
+                  onClick={() => setTypeFilter('qna')}
+                >
+                  💬 Q&A
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* 活動列表 */}
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
             <Loader2 className="w-8 h-8 animate-spin text-primary" />
           </div>
-        ) : events && events.length > 0 ? (
+        ) : filteredEvents && filteredEvents.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fade-in">
-            {events.map((event) => (
+            {filteredEvents.map((event) => (
               <EventCard
                 key={event.id}
                 event={event}
@@ -134,6 +220,31 @@ export default function Dashboard() {
                 onDelete={handleDeleteClick}
               />
             ))}
+          </div>
+        ) : events && events.length > 0 ? (
+          <div className="text-center py-12 animate-fade-in">
+            <h3 className="text-xl font-semibold mb-2">沒有符合條件的活動</h3>
+            <p className="text-muted-foreground mb-6">
+              請調整篩選條件或建立新的活動
+            </p>
+            <div className="flex gap-2 justify-center">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setStatusFilter('all');
+                  setTypeFilter('all');
+                }}
+              >
+                清除篩選
+              </Button>
+              <Button
+                variant="gradient"
+                onClick={() => navigate('/dashboard/create-event')}
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                建立新活動
+              </Button>
+            </div>
           </div>
         ) : (
           <div className="text-center py-12 animate-fade-in">
