@@ -1,7 +1,7 @@
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, Users, Play, Square, Eye, Trash2, Edit } from 'lucide-react';
+import { Calendar, Users, Play, Square, Eye, Trash2, Edit, ImageIcon } from 'lucide-react';
 import { Event } from '@/hooks/useEvents';
 import { formatDistanceToNow } from 'date-fns';
 import { zhTW } from 'date-fns/locale';
@@ -16,7 +16,23 @@ interface EventCardProps {
 
 export const EventCard = ({ event, onToggleActive, onView, onEdit, onDelete }: EventCardProps) => {
   return (
-    <Card className="hover-scale shadow-card">
+    <Card className="hover-scale shadow-card overflow-hidden">
+      {/* Cover Image */}
+      {event.cover_image_url ? (
+        <div className="relative w-full h-48 overflow-hidden bg-muted">
+          <img
+            src={event.cover_image_url}
+            alt={event.title}
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+        </div>
+      ) : (
+        <div className="w-full h-48 bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center">
+          <ImageIcon className="w-16 h-16 text-muted-foreground/30" />
+        </div>
+      )}
+
       <CardHeader>
         <div className="flex items-start justify-between">
           <div className="flex-1">

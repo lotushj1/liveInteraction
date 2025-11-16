@@ -10,6 +10,7 @@ import { Switch } from '@/components/ui/switch';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { ImageUpload } from '@/components/ImageUpload';
 import { QuizTemplate } from '@/data/templates';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 import { z } from 'zod';
@@ -19,6 +20,7 @@ const createEventSchema = z.object({
   description: z.string().max(500, '描述不能超過 500 字').optional(),
   event_type: z.enum(['qna', 'quiz']),
   qna_enabled: z.boolean().optional(),
+  cover_image_url: z.string().optional(),
 });
 
 export default function CreateEvent() {
@@ -37,6 +39,7 @@ export default function CreateEvent() {
     qna_enabled: true,
   });
 
+  const [coverImageUrl, setCoverImageUrl] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   // 如果有模版，自動填入資料
@@ -56,7 +59,10 @@ export default function CreateEvent() {
     setErrors({});
 
     try {
-      const validated = createEventSchema.parse(form);
+      const validated = createEventSchema.parse({
+        ...form,
+        cover_image_url: coverImageUrl || undefined,
+      });
 
       createEvent(
         {
@@ -64,6 +70,7 @@ export default function CreateEvent() {
           description: validated.description,
           event_type: validated.event_type,
           qna_enabled: validated.event_type === 'qna' ? validated.qna_enabled : false,
+          cover_image_url: validated.cover_image_url,
         },
         {
           onSuccess: async (event) => {
@@ -199,6 +206,22 @@ export default function CreateEvent() {
                 )}
                 <p className="text-xs text-muted-foreground">
                   {form.title.length}/100 字
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label>活動封面圖片（選填）</Label>
+                <ImageUpload
+                  value={coverImageUrl || undefined}
+                  onChange={setCoverImageUrl}
+                  bucket="event-images"
+                  folder="covers"
+                  aspectRatio="16/9"
+                  maxSize={5}
+                  label="上傳封面圖片"
+                />
+                <p className="text-xs text-muted-foreground">
+                  建議尺寸：1200 x 675 px (16:9 比例)，封面圖片會顯示在活動卡片上
                 </p>
               </div>
 
