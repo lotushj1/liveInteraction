@@ -1,0 +1,22 @@
+{
+  "name": "liveinteraction-load-testing",
+  "version": "1.0.0",
+  "description": "Load testing for LiveInteraction Supabase Realtime",
+  "type": "module",
+  "scripts": {
+    "start": "node quick-test.js",
+    "test:micro": "node test-runner.js --users 5 --duration 30",
+    "test:light": "node test-runner.js --users 10 --duration 60",
+    "test:medium": "node test-runner.js --users 25 --duration 120",
+    "test:heavy": "node test-runner.js --users 50 --duration 120",
+    "test:stress": "node test-runner.js --users 100 --duration 180",
+    "test:extreme": "node test-runner.js --users 200 --duration 300",
+    "test:batch": "node batch-test.js",
+    "test:custom": "node test-runner.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.75.0",
+    "dotenv": "^16.4.5"
+  },
+  "devDependencies": {}
+}
