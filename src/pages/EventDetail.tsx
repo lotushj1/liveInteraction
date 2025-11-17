@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { QuizEditor } from '@/components/quiz/QuizEditor';
 import { EmbedDialog } from '@/components/EmbedDialog';
+import Footer from '@/components/Footer';
 import { ArrowLeft, Loader2, Calendar, Users, Copy, CheckCircle2, Code2 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { zhTW } from 'date-fns/locale';
@@ -71,7 +72,7 @@ export default function EventDetail() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
+    <div className="min-h-screen bg-gradient-to-b from-background to-muted/20 flex flex-col">
       {/* Header */}
       <nav className="border-b bg-card/50 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4">
@@ -220,6 +221,8 @@ export default function EventDetail() {
           eventTitle={event.title}
         />
       )}
+
+      <Footer />
     </div>
   );
 }

@@ -10,6 +10,7 @@ import { Switch } from '@/components/ui/switch';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { TemplateSelector } from '@/components/TemplateSelector';
+import Footer from '@/components/Footer';
 import { QuizTemplate } from '@/data/templates';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 import { z } from 'zod';
@@ -124,7 +125,7 @@ export default function CreateEvent() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
+    <div className="min-h-screen bg-gradient-to-b from-background to-muted/20 flex flex-col">
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         <Button
           variant="ghost"
@@ -291,6 +292,8 @@ export default function CreateEvent() {
           </>
         )}
       </div>
+
+      <Footer />
     </div>
   );
 }

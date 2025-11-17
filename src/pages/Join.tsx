@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import Footer from '@/components/Footer';
 import { useParticipant } from '@/hooks/useParticipant';
 import { ArrowLeft, Users } from 'lucide-react';
 import { z } from 'zod';
@@ -161,10 +162,7 @@ const Join = () => {
         </Card>
       </main>
 
-      {/* Footer */}
-      <footer className="p-6 text-center text-sm text-muted-foreground">
-        <p>請向活動主持人索取 Join Code</p>
-      </footer>
+      <Footer />
     </div>
   );
 };

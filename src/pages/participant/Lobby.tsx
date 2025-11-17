@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import Footer from '@/components/Footer';
 import { useParticipantContext } from '@/contexts/ParticipantContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Users, Clock, LogOut } from 'lucide-react';
@@ -147,10 +148,7 @@ const Lobby = () => {
         </Card>
       </main>
 
-      {/* Footer */}
-      <footer className="mt-8 text-center text-sm text-muted-foreground">
-        <p>Join Code: <span className="font-mono font-bold text-foreground">{event.join_code}</span></p>
-      </footer>
+      <Footer />
     </div>
   );
 };

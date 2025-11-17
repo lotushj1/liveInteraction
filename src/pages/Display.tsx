@@ -2,6 +2,7 @@ import { useParams } from 'react-router-dom';
 import { useDisplayData } from '@/hooks/useDisplayData';
 import { Loader2, Users, Calendar } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import Footer from '@/components/Footer';
 import { formatDistanceToNow } from 'date-fns';
 import { zhTW } from 'date-fns/locale';
 
@@ -48,7 +49,7 @@ export default function Display() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-secondary/10">
+    <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-secondary/10 flex flex-col">
       {/* 頂部資訊欄 */}
       <div className="glass-header border-b border-border/50">
         <div className="container mx-auto px-8 py-6">
@@ -79,11 +80,13 @@ export default function Display() {
       </div>
 
       {/* 主要內容區 */}
-      <div className="container mx-auto px-8 py-12">
+      <div className="container mx-auto px-8 py-12 flex-1">
         <div className="animate-fade-in">
           {renderContent()}
         </div>
       </div>
+
+      <Footer />
     </div>
   );
 }

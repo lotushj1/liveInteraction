@@ -1,10 +1,11 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Zap, MessageSquare, BarChart3, Sparkles, ArrowRight } from "lucide-react";
+import Footer from "@/components/Footer";
 
 const Index = () => {
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen flex flex-col">
       {/* Hero Section */}
       <section className="gradient-hero relative overflow-hidden">
         <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:50px_50px]" />
@@ -167,6 +168,8 @@ const Index = () => {
           </Card>
         </div>
       </section>
+
+      <Footer />
     </div>
   );
 };

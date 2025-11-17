@@ -4,6 +4,7 @@ import { useEvents } from '@/hooks/useEvents';
 import { Button } from '@/components/ui/button';
 import { EventCard } from '@/components/EventCard';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import Footer from '@/components/Footer';
 import { Plus, LogOut, Loader2, Filter } from 'lucide-react';
 import {
   AlertDialog,
@@ -90,7 +91,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
+    <div className="min-h-screen bg-gradient-to-b from-background to-muted/20 flex flex-col">
       {/* 導覽列 */}
       <nav className="border-b bg-card/50 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4">
@@ -280,6 +281,8 @@ export default function Dashboard() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <Footer />
     </div>
   );
 }
