@@ -1,10 +1,12 @@
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, Users, Play, Square, Eye, Trash2, Edit, Copy } from 'lucide-react';
+import { Calendar, Users, Play, Square, Eye, Trash2, Edit, Copy, Check } from 'lucide-react';
 import { Event } from '@/hooks/useEvents';
 import { formatDistanceToNow } from 'date-fns';
 import { zhTW } from 'date-fns/locale';
+import { useState } from 'react';
+import { toast } from 'sonner';
 
 interface EventCardProps {
   event: Event;
@@ -16,6 +18,19 @@ interface EventCardProps {
 }
 
 export const EventCard = ({ event, onToggleActive, onView, onEdit, onDelete, onDuplicate }: EventCardProps) => {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopyJoinCode = async () => {
+    try {
+      await navigator.clipboard.writeText(event.join_code);
+      setCopied(true);
+      toast.success('編號已複製到剪貼板');
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      toast.error('複製失敗，請重試');
+    }
+  };
+
   return (
     <Card className="hover-scale shadow-card">
       <CardHeader>
@@ -58,10 +73,19 @@ export const EventCard = ({ event, onToggleActive, onView, onEdit, onDelete, onD
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
               <Users className="w-4 h-4 text-muted-foreground" />
-              <div className="glass px-3 py-1 rounded-lg border border-primary/30">
+              <div
+                className="glass px-3 py-1 rounded-lg border border-primary/30 cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-all flex items-center gap-2"
+                onClick={handleCopyJoinCode}
+                title="點擊複製編號"
+              >
                 <span className="text-xl font-bold text-primary tracking-wide">
                   {event.join_code}
                 </span>
+                {copied ? (
+                  <Check className="w-4 h-4 text-green-500" />
+                ) : (
+                  <Copy className="w-3.5 h-3.5 text-primary/60" />
+                )}
               </div>
             </div>
             {event.qna_enabled && (
