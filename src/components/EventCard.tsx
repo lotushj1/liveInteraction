@@ -1,7 +1,7 @@
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, Users, Play, Square, Eye, Trash2, Edit } from 'lucide-react';
+import { Calendar, Users, Play, Square, Eye, Trash2, Edit, Copy } from 'lucide-react';
 import { Event } from '@/hooks/useEvents';
 import { formatDistanceToNow } from 'date-fns';
 import { zhTW } from 'date-fns/locale';
@@ -12,9 +12,10 @@ interface EventCardProps {
   onView: (id: string) => void;
   onEdit: (id: string) => void;
   onDelete: (id: string) => void;
+  onDuplicate: (id: string) => void;
 }
 
-export const EventCard = ({ event, onToggleActive, onView, onEdit, onDelete }: EventCardProps) => {
+export const EventCard = ({ event, onToggleActive, onView, onEdit, onDelete, onDuplicate }: EventCardProps) => {
   return (
     <Card className="hover-scale shadow-card">
       <CardHeader>
@@ -88,16 +89,20 @@ export const EventCard = ({ event, onToggleActive, onView, onEdit, onDelete }: E
             </>
           )}
         </Button>
-        
+
         <Button size="sm" variant="outline" onClick={() => onView(event.id)}>
           <Eye className="w-4 h-4 mr-1" />
           查看
         </Button>
-        
+
         <Button size="sm" variant="ghost" onClick={() => onEdit(event.id)}>
           <Edit className="w-4 h-4" />
         </Button>
-        
+
+        <Button size="sm" variant="ghost" onClick={() => onDuplicate(event.id)}>
+          <Copy className="w-4 h-4" />
+        </Button>
+
         <Button size="sm" variant="ghost" onClick={() => onDelete(event.id)}>
           <Trash2 className="w-4 h-4" />
         </Button>

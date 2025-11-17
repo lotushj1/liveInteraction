@@ -20,7 +20,7 @@ import { useState } from 'react';
 export default function Dashboard() {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
-  const { events, isLoading, error, updateEvent, deleteEvent } = useEvents();
+  const { events, isLoading, error, updateEvent, deleteEvent, duplicateEvent } = useEvents();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
 
@@ -74,6 +74,10 @@ export default function Dashboard() {
       setDeleteDialogOpen(false);
       setSelectedEventId(null);
     }
+  };
+
+  const handleDuplicate = (id: string) => {
+    duplicateEvent(id);
   };
 
   // Show error state if events failed to load
@@ -217,6 +221,7 @@ export default function Dashboard() {
                 onToggleActive={handleToggleActive}
                 onView={(id) => navigate(`/dashboard/events/${id}`)}
                 onEdit={(id) => navigate(`/dashboard/events/${id}`)}
+                onDuplicate={handleDuplicate}
                 onDelete={handleDeleteClick}
               />
             ))}
